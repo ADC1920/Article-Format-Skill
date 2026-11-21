@@ -1,0 +1,131 @@
+# 企业公文与事务文书（通知/请示/报告/总结/规章制度）
+# ---------------------------------------------------------------
+# 适用：企业内部行文与事务性文书——通知、通报、请示、报告、批复、函、
+#       会议纪要、工作计划、工作总结、述职报告、简报、实施方案、规章制度
+#       （管理办法、实施细则、操作规程）、应急预案。
+#
+# 依据：《党政机关公文处理工作条例》的文体分类与写作要求（企业行文普遍
+#       参照）、GB/T 9704-2012 的版式要点（企业版放宽发文机关标志与印章）、
+#       GB/T 15834 标点符号、GB/T 15835 数字用法。
+#
+# 与 gov-official 的差异：企业行文不在版式上强制天头/订口尺寸，采用通用
+# 办公版式（四边 2.54cm），正文用 3 号仿宋或小四宋体均可；此处取小四宋体
+# 以提高信息密度，层次序数沿用公文体系「一、」「（一）」「1.」「（1）」。
+# ---------------------------------------------------------------
+
+version: "1.0.0"
+profile:
+  name: enterprise-doc
+  title: 企业公文与事务文书
+  standard: 公文处理工作条例（参照）
+  source: 党政机关公文处理工作条例文体分类、GB/T 9704 版式要点、GB/T 15834、GB/T 15835
+  note: 红头文件、印章、文号需按企业内部模板处理；本 profile 只落版式与层次序数
+
+fonts:
+  heading: 黑体
+  body: 宋体
+  western: Times New Roman
+  heading_by_level:
+    1: 黑体
+    2: 楷体_GB2312
+    3: 宋体
+    4: 宋体
+
+sizes_pt:
+  doc_title: 18            # 小二（文件标题）
+  h1: 15                   # 小三（一级层次）
+  h2: 14                   # 四号
+  h3: 12                   # 小四
+  h4: 12
+  h5: 12
+  h6: 10.5
+  h7: 10.5
+  body: 12                 # 小四（企业行文密度优先）
+  table: 10.5
+  footer: 10.5
+
+spacing:
+  line: 1.5
+  h1_before_after_pt: 12
+  h2_before_after_pt: 6
+  h4_before_after_pt: 6
+  h6_before_after_pt: 3
+  body_before_after_lines: 0
+
+page:
+  size: A4
+  width_cm: 21.0
+  height_cm: 29.7
+  margin_cm: 2.54
+
+alignment:
+  title: center
+  h1: left
+  h2: left
+  h3: left
+  h4: left
+  h5: left
+  h6: left
+  h7: left
+  body: justify
+
+indent:
+  body_first_line_chars: 2
+  list_left: 0
+  list_hanging: 0
+
+color:
+  text: "000000"
+
+bold:
+  headings: true
+  headings_western: true
+  emphasis: true
+  table_header: true
+
+table:
+  font_size_pt: 10.5
+  header_bold: true
+  shading: false
+  first_line_indent: false
+  line_spacing: 1.5
+  header_repeat: true
+  cant_split: true
+
+footer:
+  font: 宋体
+  font_size_pt: 10.5
+  color: "000000"
+  alignment: center
+  number_format: dash
+
+list:
+  auto_numbering: true
+  restart_per_block: true
+  indent_zero: true
+  space_after_number: true
+  first_line_indent: false
+  bold: false
+  level_defs:
+    - {fmt: chineseCounting, text: "%1、"}
+    - {fmt: chineseCounting, text: "（%1）"}
+    - {fmt: decimal, text: "%1."}
+    - {fmt: decimal, text: "（%1）"}
+    - {fmt: decimalEnclosedCircle, text: "%1"}
+    - {fmt: decimal, text: "%1)"}
+    - {fmt: lowerLetter, text: "%1."}
+
+navigation:
+  heading_styles: true
+  outline_levels: [0, 1, 2, 3, 4, 5, 6]
+  title_in_toc: false
+
+numbering_scheme:
+  heading_levels: 4
+  heading_style: chinese
+  heading_kind: chinese
+  heading_auto_number: true
+  heading_gap_check: warn
+  space_after_number: false
+  body_list_style: "一、/（一）/1./（1）"
+  use_gongwen: true

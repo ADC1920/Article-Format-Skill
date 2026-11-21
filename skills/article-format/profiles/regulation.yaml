@@ -1,0 +1,131 @@
+# 规章制度与体系文件（管理办法/操作规程/SOP/质量手册）
+# ---------------------------------------------------------------
+# 适用：管理办法、实施细则、操作规程、作业指导书（SOP）、应急预案、
+#       质量手册、程序文件、员工手册、合规手册、内部审计制度。
+#
+# 依据：GB/T 1.1-2020《标准化工作导则 第 1 部分：标准化文件的结构和起草
+#       规则》、GB/T 20001 系列《标准编写规则》、ISO 9001:2026（2026-09-16 发布，替代 2015 版）/GB/T 19001-2016
+#       的文件与成文信息要求、ISO 45001 与 ISO 14001 的体系文件层级。
+#
+# 结构要点（制度）：总则（目的与依据、适用范围、职责）→ 分则（具体条款，
+# 按管理事项分章）→ 附则（解释权、施行日期、与原制度的衔接）。条款编号
+# 用「第一条」「第二条」连续编排是制度文体的典型形态；此 profile 提供
+# 「第X条」编号的正文列举形式。
+# ---------------------------------------------------------------
+
+version: "1.0.0"
+profile:
+  name: regulation
+  title: 规章制度与体系文件
+  standard: GB/T 1.1-2020
+  source: 标准化工作导则（GB/T 1.1-2020）、GB/T 20001 系列、ISO 9001:2026 / GB/T 19001-2016
+  note: 标准类文件的条款编号（第X条）与体系文件的层级结构需按具体体系要求核对
+
+fonts:
+  heading: 黑体
+  body: 宋体
+  western: Times New Roman
+  heading_by_level:
+    1: 黑体
+    2: 黑体
+    3: 宋体
+    4: 宋体
+
+sizes_pt:
+  doc_title: 18            # 小二（制度名称）
+  h1: 15                   # 小三（章）
+  h2: 14                   # 四号（节）
+  h3: 12                   # 小四（条）
+  h4: 12
+  h5: 12
+  h6: 10.5
+  h7: 10.5
+  body: 12                 # 小四
+  table: 10.5
+  footer: 10.5
+
+spacing:
+  line: 1.5
+  h1_before_after_pt: 14
+  h2_before_after_pt: 10
+  h4_before_after_pt: 6
+  h6_before_after_pt: 3
+  body_before_after_lines: 0
+
+page:
+  size: A4
+  width_cm: 21.0
+  height_cm: 29.7
+  margin_cm: 2.54
+
+alignment:
+  title: center
+  h1: center               # 章标题居中（制度文件惯例）
+  h2: left
+  h3: left
+  h4: left
+  h5: left
+  h6: left
+  h7: left
+  body: justify
+
+indent:
+  body_first_line_chars: 2
+  list_left: 0
+  list_hanging: 0
+
+color:
+  text: "000000"
+
+bold:
+  headings: true
+  headings_western: true
+  emphasis: true
+  table_header: true
+
+table:
+  font_size_pt: 10.5
+  header_bold: true
+  shading: false
+  first_line_indent: false
+  line_spacing: 1.5
+  header_repeat: true
+  cant_split: true
+
+footer:
+  font: 宋体
+  font_size_pt: 10.5
+  color: "000000"
+  alignment: center
+  number_format: dash
+
+list:
+  auto_numbering: true
+  restart_per_block: true
+  indent_zero: true
+  space_after_number: false
+  first_line_indent: false
+  bold: false
+  level_defs:
+    - {fmt: decimal, text: "%1."}
+    - {fmt: decimal, text: "%1)"}
+    - {fmt: decimal, text: "（%1）"}
+    - {fmt: decimalEnclosedCircle, text: "%1"}
+    - {fmt: lowerLetter, text: "%1."}
+    - {fmt: lowerLetter, text: "（%1）"}
+    - {fmt: lowerRoman, text: "%1."}
+
+navigation:
+  heading_styles: true
+  outline_levels: [0, 1, 2, 3, 4, 5, 6]
+  title_in_toc: false
+
+numbering_scheme:
+  heading_levels: 4
+  heading_style: numeric
+  heading_kind: numeric    # 第一章 / 1.1 / 1.1.1
+  heading_auto_number: true
+  heading_gap_check: error
+  space_after_number: true
+  body_list_style: "1./1) /（1）/①"
+  use_gongwen: false

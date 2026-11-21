@@ -1,0 +1,122 @@
+# 技术文档（ISO/IEC/IEEE 82079-1 + 国内软件文档国标）
+# ---------------------------------------------------------------
+# 适用：产品使用说明书、用户手册、操作手册、安装指南、运维手册（runbook）、
+#       API 文档、技术方案、设计文档、README、测试报告。
+#
+# 依据：ISO/IEC/IEEE 82079-1:2019《使用说明的编制》、GB/T 8567-2006
+#       《计算机软件文档编制规范》、GB/T 9385-2008《计算机软件需求规格说明
+#       规范》、ISO/IEC/IEEE 26514《用户文档的设计与开发》、Google Developer
+#       Documentation Style Guide、Microsoft Writing Style Guide、
+#       Diátaxis 文档框架（教程/操作指南/参考/解释四分）。
+#
+# 与 default 的差异：标题不加编号（技术文档靠层级与锚点导航，不靠章节号）、
+# 正文左对齐（代码块与表格多的文档两端对齐会产生大空隙）、页边距放宽。
+# ---------------------------------------------------------------
+
+version: "1.0.0"
+profile:
+  name: tech-doc
+  title: 技术文档
+  standard: ISO/IEC/IEEE 82079-1 + GB/T 8567
+  source: ISO/IEC/IEEE 82079-1:2019、GB/T 8567-2006、GB/T 9385-2008、ISO/IEC/IEEE 26514、Diátaxis
+  note: Diátaxis 四象限（tutorial/how-to/reference/explanation）由内容组织承担，脚本只管版式
+
+fonts:
+  heading: 黑体
+  body: 宋体
+  western: Arial           # 技术文档西文用无衬线更易读（Google/Microsoft 指南一致）
+
+sizes_pt:
+  doc_title: 20            # 小一
+  h1: 16                   # 三号
+  h2: 14                   # 四号
+  h3: 12                   # 小四
+  h4: 12
+  h5: 10.5
+  h6: 10.5
+  h7: 10.5
+  body: 10.5               # 五号（技术文档正文偏小，容纳更多内容）
+  table: 9                 # 小五
+  footer: 9
+
+spacing:
+  line: 1.5
+  h1_before_after_pt: 18
+  h2_before_after_pt: 12
+  h4_before_after_pt: 6
+  h6_before_after_pt: 3
+  body_before_after_lines: 0
+
+page:
+  size: A4
+  width_cm: 21.0
+  height_cm: 29.7
+  margin_cm: 2.2
+  margin_top_cm: 2.2
+  margin_bottom_cm: 2.2
+  margin_left_cm: 2.5
+  margin_right_cm: 2.2
+
+alignment:
+  title: left
+  h1: left
+  h2: left
+  h3: left
+  h4: left
+  h5: left
+  h6: left
+  h7: left
+  body: left               # 技术文档左对齐（避免代码/表格密集文档出现字距拉伸）
+
+indent:
+  body_first_line_chars: 0 # 技术文档正文不缩进（与代码块、列表对齐更整齐）
+  list_left: 0
+  list_hanging: 0
+
+color:
+  text: "000000"
+
+bold:
+  headings: true
+  headings_western: true
+  emphasis: true
+  table_header: true
+
+table:
+  font_size_pt: 9
+  header_bold: true
+  shading: false
+  first_line_indent: false
+  line_spacing: 1.2
+  header_repeat: true
+  cant_split: true
+
+footer:
+  font: 宋体
+  font_size_pt: 9
+  color: "000000"
+  alignment: center
+  number_format: plain
+
+list:
+  auto_numbering: true
+  restart_per_block: true
+  indent_zero: true
+  space_after_number: false   # 技术文档列表用紧凑编号（1. 后不强制空格）
+  first_line_indent: false
+  bold: false
+
+navigation:
+  heading_styles: true
+  outline_levels: [0, 1, 2, 3, 4, 5, 6]
+  title_in_toc: false
+
+numbering_scheme:
+  heading_levels: 7
+  heading_style: numeric
+  heading_kind: none       # 技术文档标题不加章节编号
+  heading_auto_number: false
+  heading_gap_check: off
+  space_after_number: false
+  body_list_style: "1. / - / ·"
+  use_gongwen: false

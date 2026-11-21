@@ -1,0 +1,121 @@
+# 企业报告与商业文书（可行性研究/商业计划/项目申请/ESG/尽调）
+# ---------------------------------------------------------------
+# 适用：可行性研究报告、项目申请报告、商业计划书、市场调研报告、尽职调查
+#       报告、ESG/社会责任报告、内部控制评价报告、年度经营分析报告。
+#
+# 依据：可行性研究报告通用大纲（国家发改委《投资项目可行性研究指南》）、
+#       《企业内部控制基本规范》及配套指引、GRI Standards、ISSB IFRS S1/S2、
+#       上交所/深交所上市公司可持续发展报告指引（2024）、
+#       GB/T 7713.3-2014《科技报告编写规则》。
+#
+# 与 default 的差异：层级加深到 5 级（报告类章节多）、一级标题居中且带编号、
+# 表格字号收小以容纳财务数据、正文 1.5 倍行距提高可读性。
+# ---------------------------------------------------------------
+
+version: "1.0.0"
+profile:
+  name: business-report
+  title: 企业报告与商业文书
+  standard: 可行性研究指南 + 内控规范 + GRI/ISSB
+  source: 投资项目可行性研究指南、企业内部控制基本规范、GRI Standards、IFRS S1/S2、沪深交易所可持续发展报告指引
+  note: 财务表格的勾稽、ESG 指标口径需按具体准则人工复核
+
+fonts:
+  heading: 黑体
+  body: 宋体
+  western: Times New Roman
+
+sizes_pt:
+  doc_title: 22            # 二号（报告封面标题）
+  h1: 16                   # 三号（章标题）
+  h2: 14                   # 四号
+  h3: 12                   # 小四
+  h4: 12
+  h5: 10.5
+  h6: 10.5
+  h7: 10.5
+  body: 12                 # 小四
+  table: 10.5              # 五号（财务与指标表）
+  footer: 10.5
+
+spacing:
+  line: 1.5
+  h1_before_after_pt: 18
+  h2_before_after_pt: 12
+  h4_before_after_pt: 6
+  h6_before_after_pt: 3
+  body_before_after_lines: 0
+
+page:
+  size: A4
+  width_cm: 21.0
+  height_cm: 29.7
+  margin_cm: 2.54
+  margin_top_cm: 2.8
+  margin_bottom_cm: 2.5
+  margin_left_cm: 3.0
+  margin_right_cm: 2.5
+
+alignment:
+  title: center
+  h1: center               # 章标题居中（报告类惯例）
+  h2: left
+  h3: left
+  h4: left
+  h5: left
+  h6: left
+  h7: left
+  body: justify
+
+indent:
+  body_first_line_chars: 2
+  list_left: 0
+  list_hanging: 0
+
+color:
+  text: "000000"
+
+bold:
+  headings: true
+  headings_western: true
+  emphasis: true
+  table_header: true
+
+table:
+  font_size_pt: 10.5
+  header_bold: true
+  shading: false
+  first_line_indent: false
+  line_spacing: 1.3
+  header_repeat: true
+  cant_split: true
+
+footer:
+  font: 宋体
+  font_size_pt: 10.5
+  color: "000000"
+  alignment: center
+  number_format: plain
+
+list:
+  auto_numbering: true
+  restart_per_block: true
+  indent_zero: true
+  space_after_number: true
+  first_line_indent: false
+  bold: false
+
+navigation:
+  heading_styles: true
+  outline_levels: [0, 1, 2, 3, 4, 5, 6]
+  title_in_toc: false
+
+numbering_scheme:
+  heading_levels: 5        # 报告类章节层次较深
+  heading_style: numeric
+  heading_kind: numeric    # 1 / 1.1 / 1.1.1
+  heading_auto_number: true
+  heading_gap_check: error
+  space_after_number: true
+  body_list_style: "1./1)/(1)/①/a./(a)/i."
+  use_gongwen: false

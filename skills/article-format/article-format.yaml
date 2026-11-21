@@ -1,0 +1,165 @@
+# 文章排版规范配置（唯一权威源）
+# ---------------------------------------------------------------
+# 改这里即改规格，无需修改任何 Python 代码。
+# 依据：2026-09-08 用户提供《排版格式要求》图片
+#       <用户提供的排版要求图片>
+#       2026-09-09 用户以文字重述《十二条规范》并确认为全局默认
+#
+# 生效范围：文章、制度、论文、报告、方案、总结、通知、汇报材料等「文章类」文档。
+# 输出通道（唯一）：Python 精确通道 scripts/{md2docx,article_style}.py
+#   （pandoc 通用通道已于 2026-09-11 按用户指令移除，见 SKILL.md）
+#
+# 字段缺失时脚本回落到内置默认值（与本文件当前值一致）。
+# 2026-09-12 用户指令：标题层级由 3 级扩展至 7 级（h4-h7 补齐，配对递减）。
+# 2026-09-13 用户指令：一级标题段前段后 17 磅维持，并明确一级标题居中
+#   （此前脚本已硬编码居中，本次落入 yaml 唯一权威源，脚本改读本节）。
+# 2026-09-13 用户指令：标题编号改 Word 自动多级编号（增删自动重排），
+#   源稿手写编号前缀由脚本剥离避免双重编号；标题层级连续性校验默认报错。
+# 2026-09-22 修订（v1.5.1）：①补「页面」规格——此前脚本不设纸型，成品随
+#   python-docx 默认模板落到 Letter，中文办公场景应为 A4；②正文/列表/表格
+#   单元格统一解析 **加粗**（此前编号列表整段纯文本写入，星号会原样出现在成品）。
+# 2026-10-09 修订（v1.5.2）：①md2docx 的表格外观改由下方 table 节驱动——此前
+#   字号硬编码、行距/对齐靠样式继承，改本文件对成品不生效；②表格单元格段落
+#   显式左对齐＋缩进清零（防窄列两端对齐拉字距、防继承正文首行缩进）；
+#   ③行首日期形态（09.17 / 2026.10.08）不再按数字编号误判为标题，落为正文段。
+# 2026-10-09 修订（v1.5.3）：修复标题段前段后被正文行单位属性顶掉——标题样式
+#   默认 basedOn 正文，正文的「0.1 行」行单位属性（beforeLines）优先于磅值，
+#   使一级 17 磅 / 二三级 13 磅 / 四五级 6 磅 / 六七级 3 磅 / 主标题段后 17 磅
+#   实际渲染均为 0.1 行；现剥离标题对正文的继承链，磅值如实生效（正文不受影响）。
+# 2026-10-09 修订（v1.5.4，用户指令）：页脚页码——字号 10.5 磅改宋体小四（12 磅）；
+#   页码显示格式改「- N -」（PAGE 域两侧加「- 」与「 -」）；底端居中。
+# 2026-10-12 修订（v1.5.5）：表格跨页规则回归移植（本机 v1.8 特性，10-09 对齐时
+#   丢失）＋新增行不拆页——table.header_repeat（首行重复标题行，2026-09-21 用户
+#   指令的 w:tblHeader 实现）与 table.cant_split（数据行不跨页拆断，防单元格文字
+#   被页边界切成两半）落 article_style.py，两开关均可 yaml 关闭。
+# ---------------------------------------------------------------
+
+version: "2.0.0"
+
+# 字体：中文与西文分设（西文含数字与标点）
+fonts:
+  heading: 黑体                # 各级标题中文字体（规则一~四）
+  body: 宋体                   # 正文 / 表格 / 页脚中文字体（规则六/九/十）
+  western: Times New Roman     # 英文、数字（规则五/六/八/九）
+
+# 字号（磅）：doc_title=小二, h1=小三, h2/h3=四号, h4/h5=小四, h6/h7=五号, body=小四
+sizes_pt:
+  doc_title: 18
+  h1: 15
+  h2: 14
+  h3: 14
+  h4: 12
+  h5: 12
+  h6: 10.5
+  h7: 10.5
+  body: 12
+  table: 12                    # 遗留兼容项；表格字号真源=下方 table.font_size_pt（v1.5.2 起）
+  footer: 12                   # 页脚页码：宋体小四（2026-10-09 用户指令改；原 10.5）
+
+# 行距与段间距
+spacing:
+  line: 1.3                    # 全文行距倍数（规则二~四/六/八/九）
+  h1_before_after_pt: 17       # 一级标题段前段后（磅，规则二）
+  h2_before_after_pt: 13       # 二 / 三级标题段前段后（磅，规则三/四）
+  h4_before_after_pt: 6        # 四 / 五级标题段前段后（磅，规则三/四）
+  h6_before_after_pt: 3        # 六 / 七级标题段前段后（磅，规则三/四）
+  body_before_after_lines: 0.1 # 正文段前段后（行，规则六/八）
+
+# 页面（纸型与页边距）：中文办公通用 A4，四边 2.54cm
+page:
+  size: A4                     # A4（210×297mm）
+  width_cm: 21.0               # 页宽
+  height_cm: 29.7              # 页高
+  margin_cm: 2.54              # 四边页边距（1 英寸）
+
+# 对齐（取值：center / justify / left / right）
+alignment:
+  title: center                # 文档主标题居中
+  h1: center                   # 一级标题居中（2026-09-13 用户指令）
+  h2: justify                  # 二~七级标题两端对齐
+  h3: justify
+  h4: justify
+  h5: justify
+  h6: justify
+  h7: justify
+  body: justify                # 正文两端对齐
+
+# 缩进（字符 / 数值）
+indent:
+  body_first_line_chars: 2     # 正文首行缩进 2 字符（规则六/八）
+  list_left: 0                 # 正文标号左缩进（顶格，规则七）
+  list_hanging: 0              # 正文标号悬挂缩进（顶格，规则七）
+
+# 文字颜色（RGB 十六进制，不含 #）
+color:
+  text: "000000"
+
+# 加粗规则（规则三/四/五/八/九）
+bold:
+  headings: true               # 各级标题加粗（规则二~四）
+  headings_western: true       # 标题内英文/数字同步加粗（规则五）
+  emphasis: true               # 正文重点表达加粗（规则八）
+  table_header: true           # 表格表头加粗（规则九）
+
+# 表格（规则九）：本节是表格外观的唯一权威源，md2docx 直接读取（改此处即改成品）
+table:
+  font_size_pt: 12             # 宋体小四（表格字号真源，v1.5.2 起 md2docx/verify 均读此处）
+  header_bold: true            # 表头加粗
+  shading: false               # 无底色、无隔行着色（规范断言，实现恒定不添加底纹）
+  first_line_indent: false     # 表格内文字不缩进（规范断言，实现恒定清零缩进）
+  line_spacing: 1.3            # 1.3 倍行距
+  header_repeat: true          # 首行重复标题行（跨页时表头自动重复，w:tblHeader；
+                               #   2026-09-21 用户指令，v1.5.5 回归移植）
+  cant_split: true             # 行不跨页拆分（w:cantSplit，防单元格文字被页边界
+                               #   切成两半；行高近满页的表格可关）
+
+# 页脚页码（规则十）
+footer:
+  font: 宋体
+  font_size_pt: 12             # 宋体小四（2026-10-09 用户指令改；原 10.5）
+  color: "000000"              # 黑色
+  alignment: center            # 居中
+
+# 正文标号（规则七）
+list:
+  auto_numbering: true         # Word 程序自动编号（增删自动重排）
+  restart_per_block: true      # 每个列表块独立从 1 开始
+  indent_zero: true            # 编号缩进与文本缩进均归 0（顶格）
+  space_after_number: true     # 编号与文字之间空一格（suff=space）
+  first_line_indent: false     # 无首行缩进
+  bold: false                  # 无加粗等特别标注
+  # 七级形式依层级：1. / 1) / (1) / ① / a. / (a) / i.
+  formats:
+    level1: "%1."                # 阿拉伯数字加点（decimal）
+    level2: "%1)"                # 阿拉伯数字加右括号（decimal）
+    level3: "(%1)"               # 圆括号包数字（decimal）
+    level4: "%1"                 # 带圈数字 ①②③（decimalEnclosedCircle）
+    level5: "%1."                # 小写字母加点 a. b. c.（lowerLetter）
+    level6: "(%1)"               # 圆括号包字母 (a) (b)（lowerLetter）
+    level7: "%1."                # 小写罗马数字 i. ii. iii.（lowerRoman）
+
+# 导航目录（规则十一）
+navigation:
+  heading_styles: true         # 一~七级标题套用 Word 内置 Heading 1-7
+  outline_levels: [0, 1, 2, 3, 4, 5, 6]    # 大纲级别
+  title_in_toc: false          # 文档主标题不套用、不进目录树
+
+# 编号体系（规则十二）
+numbering_scheme:
+  heading_levels: 7            # 章节标题最大层级（md # 前缀与数字式段数上限）
+  heading_style: numeric       # 章节标题数字式七层：1 / 1.1 / … / 1.1.1.1.1.1.1
+  heading_kind: numeric        # 编号体系：numeric / chinese / chapter / chinese-numeric / none
+                               #   numeric=1/1.1/1.1.1（本文件默认）
+                               #   chinese=一、/（一）/1./（1）（公文体）
+                               #   chapter=第1章/1.1/1.1.1（学位论文）
+                               #   none=标题不加编号（技术文档、医学论文）
+                               # 其他文体见 profiles/*.yaml，勿在此切换
+  heading_auto_number: true    # 标题编号由 Word 自动多级编号接管（增删自动重排）；
+                               # 开启后 md2docx 渲染标题时剥离源稿手写编号前缀
+  heading_gap_check: "error"   # 标题层级连续性校验：error=跳级即报错退出 /
+                               # warn=stderr 告警继续 / off=不校验
+                               # （跳级定义：下一标题层级 > 上一标题层级 + 1）
+  space_after_number: true     # 序号与题名间空一格（半角空格）
+  body_list_style: "1./1)/(1)/①/a./(a)/i."   # 正文内列举形式（七级）
+  use_gongwen: false           # 不使用公文式「一、」「（一）」编号
+

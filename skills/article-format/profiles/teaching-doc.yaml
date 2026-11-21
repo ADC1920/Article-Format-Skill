@@ -1,0 +1,117 @@
+# 教育教学文档（教案/教学设计/试卷/开题报告/教研论文）
+# ---------------------------------------------------------------
+# 适用：教案与教学设计、说课稿、教学反思、试卷与双向细目表、开题报告、
+#       文献综述、实习报告、学期总结、教研论文。
+#
+# 依据：义务教育课程方案与课程标准（2022 年版）的教学设计要求、普通高中
+#       课程方案、教育部关于加强义务教育学校考试管理的通知（试卷编制）、
+#       GB/T 7713.2-2022（教研论文）、GB/T 7714-2025（参考文献）。
+#
+# 结构要点（教案）：课题/课型/课时 → 教学目标（可观察行为动词）→ 重点难点
+# → 教学准备 → 教学过程（教师活动/学生活动/设计意图/时间）→ 板书设计
+# → 作业布置 → 教学反思。此 profile 只管版式与层级，结构由内容承担。
+# ---------------------------------------------------------------
+
+version: "1.0.0"
+profile:
+  name: teaching-doc
+  title: 教育教学文档
+  standard: 义务教育课程方案与课程标准（2022 年版）
+  source: 义务教育课程方案（2022）、普通高中课程方案、教育部考试管理通知、GB/T 7713.2
+  note: 教学目标的行为动词与核心素养对应需按学科课标逐条核对
+
+fonts:
+  heading: 黑体
+  body: 宋体
+  western: Times New Roman
+
+sizes_pt:
+  doc_title: 18            # 小二
+  h1: 14                   # 四号
+  h2: 12                   # 小四
+  h3: 12
+  h4: 12
+  h5: 10.5
+  h6: 10.5
+  h7: 10.5
+  body: 12                 # 小四
+  table: 10.5              # 教学过程表常用五号
+  footer: 10.5
+
+spacing:
+  line: 1.5
+  h1_before_after_pt: 12
+  h2_before_after_pt: 6
+  h4_before_after_pt: 6
+  h6_before_after_pt: 3
+  body_before_after_lines: 0
+
+page:
+  size: A4
+  width_cm: 21.0
+  height_cm: 29.7
+  margin_cm: 2.54
+
+alignment:
+  title: center
+  h1: left
+  h2: left
+  h3: left
+  h4: left
+  h5: left
+  h6: left
+  h7: left
+  body: justify
+
+indent:
+  body_first_line_chars: 2
+  list_left: 0
+  list_hanging: 0
+
+color:
+  text: "000000"
+
+bold:
+  headings: true
+  headings_western: true
+  emphasis: true
+  table_header: true
+
+table:
+  font_size_pt: 10.5
+  header_bold: true
+  shading: false
+  first_line_indent: false
+  line_spacing: 1.5
+  header_repeat: true
+  cant_split: true
+
+footer:
+  font: 宋体
+  font_size_pt: 10.5
+  color: "000000"
+  alignment: center
+  number_format: dash
+
+list:
+  auto_numbering: true
+  restart_per_block: true
+  indent_zero: true
+  space_after_number: true
+  first_line_indent: false
+  bold: false
+
+navigation:
+  heading_styles: true
+  outline_levels: [0, 1, 2, 3, 4, 5, 6]
+  title_in_toc: false
+
+numbering_scheme:
+  heading_levels: 4
+  heading_style: numeric
+  heading_kind: numeric    # 教案板块常写「一、教学目标」或「1. 教学目标」
+  heading_auto_number: true
+  heading_gap_check: warn
+  space_after_number: true
+  body_list_style: "1./1)/(1)/①/a./(a)/i."
+  use_gongwen: false

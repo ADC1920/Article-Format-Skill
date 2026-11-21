@@ -1,0 +1,129 @@
+# 法律文书（起诉状/答辩状/合同/法律意见书/律师函）
+# ---------------------------------------------------------------
+# 适用：民事起诉状、答辩状、上诉状、代理词、律师函、法律意见书、
+#       仲裁申请书、尽职调查报告、合同与协议、授权委托书。
+#
+# 依据：《民事诉讼法》起诉状与答辩状应载明事项（第一百二十二条、第一百
+#       二十八条）、最高人民法院《民事诉讼文书样式》（2016 年发布）、
+#       《律师业务档案立卷归档办法》、IPO 法律意见书与律师工作报告的
+#       证监会格式准则（公开发行证券的公司信息披露内容与格式准则第 12 号）。
+#
+# 结构要点（起诉状）：标题 → 原告信息 → 被告信息 → 诉讼请求 → 事实与理由
+# → 证据清单 → 致送法院 → 具状人签名与日期 → 附项。此 profile 只落版式。
+# ---------------------------------------------------------------
+
+version: "1.0.0"
+profile:
+  name: legal-doc
+  title: 法律文书
+  standard: 民事诉讼文书样式
+  source: 民事诉讼法、最高人民法院民事诉讼文书样式（2016）、证监会信息披露内容与格式准则第 12 号
+  note: 诉状与合同的法律效力取决于实体内容，版式仅为形式要件之一
+
+fonts:
+  heading: 黑体
+  body: 仿宋_GB2312        # 法律文书正文传统用仿宋
+  western: Times New Roman
+
+sizes_pt:
+  doc_title: 22            # 二号（文书标题，法院文书惯例）
+  h1: 16                   # 三号
+  h2: 16
+  h3: 14
+  h4: 14
+  h5: 12
+  h6: 12
+  h7: 12
+  body: 16                 # 三号（法院文书正文用三号仿宋）
+  table: 12
+  footer: 14
+
+spacing:
+  line: 1.5
+  h1_before_after_pt: 12
+  h2_before_after_pt: 6
+  h4_before_after_pt: 6
+  h6_before_after_pt: 3
+  body_before_after_lines: 0
+
+page:
+  size: A4
+  width_cm: 21.0
+  height_cm: 29.7
+  margin_cm: 2.54
+  margin_top_cm: 3.7       # 法院文书按公文版式，天头留白较大
+  margin_bottom_cm: 3.5
+  margin_left_cm: 2.8
+  margin_right_cm: 2.6
+
+alignment:
+  title: center
+  h1: left
+  h2: left
+  h3: left
+  h4: left
+  h5: left
+  h6: left
+  h7: left
+  body: justify
+
+indent:
+  body_first_line_chars: 2
+  list_left: 0
+  list_hanging: 0
+
+color:
+  text: "000000"
+
+bold:
+  headings: false          # 法律文书层次标题不加粗
+  headings_western: false
+  emphasis: true
+  table_header: true
+
+table:
+  font_size_pt: 12
+  header_bold: true
+  shading: false
+  first_line_indent: false
+  line_spacing: 1.5
+  header_repeat: true
+  cant_split: true
+
+footer:
+  font: 宋体
+  font_size_pt: 14
+  color: "000000"
+  alignment: center
+  number_format: plain
+
+list:
+  auto_numbering: true
+  restart_per_block: true
+  indent_zero: true
+  space_after_number: false
+  first_line_indent: false
+  bold: false
+  level_defs:
+    - {fmt: chineseCounting, text: "%1、"}
+    - {fmt: chineseCounting, text: "（%1）"}
+    - {fmt: decimal, text: "%1."}
+    - {fmt: decimal, text: "（%1）"}
+    - {fmt: decimalEnclosedCircle, text: "%1"}
+    - {fmt: decimal, text: "%1)"}
+    - {fmt: lowerLetter, text: "%1."}
+
+navigation:
+  heading_styles: true
+  outline_levels: [0, 1, 2, 3, 4, 5, 6]
+  title_in_toc: false
+
+numbering_scheme:
+  heading_levels: 4
+  heading_style: chinese
+  heading_kind: chinese    # 一、/（一）/1./（1）
+  heading_auto_number: true
+  heading_gap_check: warn
+  space_after_number: false
+  body_list_style: "一、/（一）/1./（1）"
+  use_gongwen: true

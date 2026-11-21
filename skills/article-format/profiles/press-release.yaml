@@ -1,0 +1,122 @@
+# 新闻稿与企业公关稿（通讯社规范 + 新闻发布实务）
+# ---------------------------------------------------------------
+# 适用：新闻稿（press release）、企业公告稿、活动通稿、危机公关声明、
+#       媒体约稿、内刊通讯。
+#
+# 依据：新华社《新闻信息报道中的禁用词和慎用词》（2016 年修订，共 102 条）、
+#       《中国新闻工作者职业道德准则》（2019 年修订）、Reuters Handbook of
+#       Journalism 十条绝对准则、AP Stylebook 通用体例、BBC Editorial
+#       Guidelines（2025 版）。
+#
+# 结构要件（倒金字塔）：标题 → 导语（5W1H，首段独立成篇）→ 主体（重要性
+# 递减）→ 背景 → 结语（引语或展望）→ 媒体联络。此 profile 只管版式，
+# 结构由稿件内容承担。
+# ---------------------------------------------------------------
+
+version: "1.0.0"
+profile:
+  name: press-release
+  title: 新闻稿与企业公关稿
+  standard: 新华社禁用词慎用词 + 新闻职业道德准则
+  source: 新华社 102 条禁用词慎用词、Reuters Handbook、AP Stylebook、BBC Editorial Guidelines
+  note: 禁用词与慎用词需人工按清单核校，脚本不做词表扫描
+
+fonts:
+  heading: 黑体
+  body: 宋体
+  western: Times New Roman
+
+sizes_pt:
+  doc_title: 18            # 小二（新闻标题）
+  h1: 14                   # 四号（小标题）
+  h2: 12
+  h3: 12
+  h4: 12
+  h5: 12
+  h6: 12
+  h7: 12
+  body: 12                 # 小四
+  table: 10.5
+  footer: 10.5
+
+spacing:
+  line: 1.5
+  h1_before_after_pt: 12
+  h2_before_after_pt: 6
+  h4_before_after_pt: 6
+  h6_before_after_pt: 3
+  body_before_after_lines: 0.1
+
+page:
+  size: A4
+  width_cm: 21.0
+  height_cm: 29.7
+  margin_cm: 2.5
+  margin_top_cm: 2.5
+  margin_bottom_cm: 2.5
+  margin_left_cm: 2.8
+  margin_right_cm: 2.5
+
+alignment:
+  title: left              # 新闻稿标题左对齐（通稿惯例，非居中）
+  h1: left
+  h2: left
+  h3: left
+  h4: left
+  h5: left
+  h6: left
+  h7: left
+  body: justify
+
+indent:
+  body_first_line_chars: 2
+  list_left: 0
+  list_hanging: 0
+
+color:
+  text: "000000"
+
+bold:
+  headings: true
+  headings_western: true
+  emphasis: true
+  table_header: true
+
+table:
+  font_size_pt: 10.5
+  header_bold: true
+  shading: false
+  first_line_indent: false
+  line_spacing: 1.5
+  header_repeat: true
+  cant_split: true
+
+footer:
+  font: 宋体
+  font_size_pt: 10.5
+  color: "000000"
+  alignment: center
+  number_format: plain
+
+list:
+  auto_numbering: true
+  restart_per_block: true
+  indent_zero: true
+  space_after_number: true
+  first_line_indent: false
+  bold: false
+
+navigation:
+  heading_styles: true
+  outline_levels: [0, 1, 2, 3, 4, 5, 6]
+  title_in_toc: false
+
+numbering_scheme:
+  heading_levels: 3        # 新闻稿小标题一般不超过 3 级
+  heading_style: numeric
+  heading_kind: numeric
+  heading_auto_number: false   # 新闻稿小标题通常不加编号，靠加粗小标题区分
+  heading_gap_check: off
+  space_after_number: true
+  body_list_style: "1./1)/(1)/①/a./(a)/i."
+  use_gongwen: false

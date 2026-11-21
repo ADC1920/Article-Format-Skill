@@ -1,0 +1,123 @@
+# 新媒体推文与营销文案（公众号/小红书/知乎/短视频脚本）
+# ---------------------------------------------------------------
+# 适用：微信公众号长文、小红书笔记、知乎回答、短视频口播脚本、
+#       电商详情页文案、品牌新闻稿、直播脚本。
+#
+# 依据：《广告法》（绝对化用语禁令、广告可识别性、特殊行业禁令）、
+#       《互联网广告管理办法》（2023 年 5 月 1 日施行）、市场监管总局
+#       2023 年第 6 号公告《广告绝对化用语执法指南》、《房地产广告发布
+#       规定》、《化妆品监督管理条例》第四十三条、Google Search
+#       Essentials 与 E-E-A-T 内容质量框架。
+#
+# 版式要点：移动端阅读为主——正文 15px 量级（对应 docx 小四偏小仍可读）、
+# 段落 1-3 句、段间留白、无首行缩进（移动端不缩进更整齐）、行距放宽、
+# 标题不加编号（靠小标题分层）。
+# ---------------------------------------------------------------
+
+version: "1.0.0"
+profile:
+  name: social-media
+  title: 新媒体推文与营销文案
+  standard: 广告法 + 互联网广告管理办法
+  source: 广告法第九条/第十四条/第十六条/第二十四条、互联网广告管理办法（2023）、广告绝对化用语执法指南（2023）、房地产广告发布规定、化妆品监督管理条例、Google Search Essentials
+  note: 绝对化用语与行业禁令需人工对照词表核校；平台限流词随平台政策变动
+
+fonts:
+  heading: 黑体
+  body: 宋体
+  western: Arial
+
+sizes_pt:
+  doc_title: 18            # 小二（推文标题）
+  h1: 14                   # 四号（小标题）
+  h2: 12
+  h3: 12
+  h4: 12
+  h5: 12
+  h6: 12
+  h7: 12
+  body: 11                 # 五号偏大（移动端阅读舒适区）
+  table: 10.5
+  footer: 9
+
+spacing:
+  line: 1.75               # 公众号排版最常用行距
+  h1_before_after_pt: 14
+  h2_before_after_pt: 10
+  h4_before_after_pt: 8
+  h6_before_after_pt: 6
+  body_before_after_lines: 0.3   # 段间留白（移动端阅读需要更明显的段落间隔）
+
+page:
+  size: A4
+  width_cm: 21.0
+  height_cm: 29.7
+  margin_cm: 2.2
+  margin_top_cm: 2.2
+  margin_bottom_cm: 2.2
+  margin_left_cm: 2.5
+  margin_right_cm: 2.5
+
+alignment:
+  title: left
+  h1: left
+  h2: left
+  h3: left
+  h4: left
+  h5: left
+  h6: left
+  h7: left
+  body: left               # 移动端左对齐（不做两端对齐，避免字距被拉开）
+
+indent:
+  body_first_line_chars: 0 # 移动端不首行缩进
+  list_left: 0
+  list_hanging: 0
+
+color:
+  text: "333333"           # 公众号正文常用 #333333，不用纯黑
+
+bold:
+  headings: true
+  headings_western: true
+  emphasis: true
+  table_header: true
+
+table:
+  font_size_pt: 10.5
+  header_bold: true
+  shading: false
+  first_line_indent: false
+  line_spacing: 1.5
+  header_repeat: true
+  cant_split: true
+
+footer:
+  font: 宋体
+  font_size_pt: 9
+  color: "000000"
+  alignment: center
+  number_format: none      # 新媒体文案不需要页码
+
+list:
+  auto_numbering: true
+  restart_per_block: true
+  indent_zero: true
+  space_after_number: true
+  first_line_indent: false
+  bold: false
+
+navigation:
+  heading_styles: true
+  outline_levels: [0, 1, 2, 3, 4, 5, 6]
+  title_in_toc: false
+
+numbering_scheme:
+  heading_levels: 3
+  heading_style: numeric
+  heading_kind: none       # 推文小标题不加编号
+  heading_auto_number: false
+  heading_gap_check: off
+  space_after_number: true
+  body_list_style: "1./1)/(1)/①/a./(a)/i."
+  use_gongwen: false

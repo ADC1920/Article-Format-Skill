@@ -1,0 +1,142 @@
+# 党政机关公文格式（GB/T 9704-2012 +《党政机关公文处理工作条例》）
+# ---------------------------------------------------------------
+# 适用：决议、决定、命令（令）、公报、公告、通告、意见、通知、通报、报告、
+#       请示、批复、议案、函、纪要 共 15 种法定文种，以及机关内部行文。
+#
+# 依据：GB/T 9704-2012《党政机关公文格式》与《党政机关公文处理工作条例》
+#       （中办发〔2012〕14 号）。核心版式参数：A4 纸、上边距 37mm、
+#       下边距 35mm、左边距 28mm、右边距 26mm；正文 3 号仿宋，每页 22 行、
+#       每行 28 字；标题 2 号小标宋；层次序数「一、」「（一）」「1.」「（1）」。
+#
+# 本 profile 只落"能自动化的版式与编号"部分：字体字号、页边距、行距、
+# 层次序数、页码位置。发文机关标志、红色分隔线、印章、成文日期右空四字
+# 等需人工按模板处理，脚本不代劳（避免产出违反规范的"假公文"）。
+#
+# 用法：python md2docx.py in.md out.docx --profile gov-official
+# ---------------------------------------------------------------
+
+version: "1.0.0"
+profile:
+  name: gov-official
+  title: 党政机关公文
+  standard: GB/T 9704-2012
+  source: 党政机关公文格式国家标准 + 党政机关公文处理工作条例
+  note: 版式参数按国标落地；发文机关标志、印章、成文日期位置需人工按模板校对
+
+fonts:
+  heading: 方正小标宋简体   # 标题用 2 号小标宋（本机无此字库时回落宋体加粗）
+  body: 仿宋_GB2312        # 正文 3 号仿宋（本机无此字库时回落仿宋）
+  western: Times New Roman
+  # 国标：文中结构层次序数第一层用黑体、第二层用楷体、第三/四层用仿宋。
+  # 标题本身（2 号小标宋）由 doc_title 项控制，heading_by_level 只管层次序数。
+  heading_by_level:
+    1: 黑体
+    2: 楷体_GB2312
+    3: 仿宋_GB2312
+    4: 仿宋_GB2312
+
+sizes_pt:
+  doc_title: 22            # 二号（22 磅）
+  h1: 16                   # 三号（16 磅）
+  h2: 16
+  h3: 16
+  h4: 16
+  h5: 16
+  h6: 16
+  h7: 16
+  body: 16                 # 三号（16 磅）
+  table: 16
+  footer: 14               # 四号（14 磅），国标页码用 4 号半角阿拉伯数字
+
+spacing:
+  line: 1.0                # 国标按每页 22 行固定网格，行距用固定值而非倍数
+  line_rule: exact         # 固定行距（行网格）
+  line_pt: 28.9            # 22 行/页对应约 28.9 磅固定行距
+  h1_before_after_pt: 0    # 公文层次标题段落不额外留空
+  h2_before_after_pt: 0
+  h4_before_after_pt: 0
+  h6_before_after_pt: 0
+  body_before_after_lines: 0
+
+page:
+  size: A4
+  width_cm: 21.0
+  height_cm: 29.7
+  margin_cm: 2.54          # 兜底值；下列分边值优先
+  margin_top_cm: 3.7       # 国标：上白边 37mm ± 1mm
+  margin_bottom_cm: 3.5    # 国标：下白边 35mm ± 1mm
+  margin_left_cm: 2.8      # 国标：左白边 28mm ± 1mm
+  margin_right_cm: 2.6     # 国标：右白边 26mm ± 1mm
+
+alignment:
+  title: center            # 标题 2 号小标宋居中，可分一行或多行，回行时词意完整
+  h1: left                 # 层次标题「一、」左空二字
+  h2: left                 # 「（一）」左空二字
+  h3: left
+  h4: left
+  h5: left
+  h6: left
+  h7: left
+  body: justify            # 正文两端对齐
+
+indent:
+  body_first_line_chars: 2 # 正文每段左空二字
+  list_left: 0
+  list_hanging: 0
+
+color:
+  text: "000000"
+
+bold:
+  headings: false          # 公文层次标题不加粗（字体本身即 3 号黑体/楷体区分层级）
+  headings_western: false
+  emphasis: true
+  table_header: true
+
+table:
+  font_size_pt: 16
+  header_bold: true
+  shading: false
+  first_line_indent: false
+  line_spacing: 1.0
+  header_repeat: true
+  cant_split: true
+
+footer:
+  font: 宋体
+  font_size_pt: 14
+  color: "000000"
+  alignment: center        # 国标：页码位于版心下边缘之下，单页码居右、双页码居左
+  number_format: plain     # 单页码「— 1 —」形态由模板负责；脚本只插数字
+
+list:
+  auto_numbering: true
+  restart_per_block: true
+  indent_zero: true
+  space_after_number: true
+  first_line_indent: false
+  bold: false
+  # 公文体正文层次序数：一、→（一）→ 1. →（1）
+  level_defs:
+    - {fmt: chineseCounting, text: "%1、"}
+    - {fmt: chineseCounting, text: "（%1）"}
+    - {fmt: decimal, text: "%1."}
+    - {fmt: decimal, text: "（%1）"}
+    - {fmt: decimalEnclosedCircle, text: "%1"}
+    - {fmt: decimal, text: "%1)"}
+    - {fmt: lowerLetter, text: "%1."}
+
+navigation:
+  heading_styles: true
+  outline_levels: [0, 1, 2, 3, 4, 5, 6]
+  title_in_toc: false
+
+numbering_scheme:
+  heading_levels: 4        # 公文层次序数最深到「（1）」，再往下一律用自然段表述
+  heading_style: chinese
+  heading_kind: chinese    # 一、/（一）/1./（1）
+  heading_auto_number: true
+  heading_gap_check: warn  # 公文实际行文常跳级（如无「（一）」直接用「1.」），只告警
+  space_after_number: false  # 中文序数后不空格
+  body_list_style: "一、/（一）/1./（1）"
+  use_gongwen: true

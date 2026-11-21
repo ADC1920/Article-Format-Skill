@@ -1,0 +1,119 @@
+# 医学科研论文（IMRaD + ICMJE + 报告规范）
+# ---------------------------------------------------------------
+# 适用：临床研究论文、基础医学论文、病例报告、系统综述与 Meta 分析、
+#       医学会议摘要、临床研究报告（CSR）。
+#
+# 依据：ICMJE Recommendations（医学期刊投稿统一要求）、IMRaD 结构、
+#       CONSORT 2025（随机对照试验，30 项清单，替代 2010 版）、PRISMA 2020（系统综述）、STROBE
+#       （观察性研究）、CARE（病例报告）、STARD（诊断准确性）、ARRIVE
+#       （动物研究）、SQUIRE（质量改进研究）；参考文献按 Vancouver 体系
+#       （ICMJE 推荐的顺序编码制）。
+#
+# 与 academic-paper 的差异：正文用 12pt 双倍行距（ICMJE 与多数医学期刊
+# 投稿要求）、结构化摘要（目的/方法/结果/结论）、表格三线表、Vancouver 引文。
+# ---------------------------------------------------------------
+
+version: "1.0.0"
+profile:
+  name: medical-paper
+  title: 医学科研论文
+  standard: ICMJE Recommendations
+  source: ICMJE、CONSORT 2025、PRISMA 2020、STROBE、CARE、STARD、ARRIVE、SQUIRE、Vancouver 引文
+  note: 报告清单（checklist）逐条核对需人工完成；本 profile 只落版式与结构骨架
+
+fonts:
+  heading: 黑体
+  body: 宋体
+  western: Times New Roman
+
+sizes_pt:
+  doc_title: 14            # 四号（医学期刊标题多不加粗加大，此处留梯度）
+  h1: 12                   # 小四（方法/结果/讨论等一级标题）
+  h2: 12
+  h3: 10.5
+  h4: 10.5
+  h5: 10.5
+  h6: 10.5
+  h7: 10.5
+  body: 12                 # 小四（ICMJE 投稿版常用 12pt）
+  table: 9                 # 三线表
+  footer: 10.5
+
+spacing:
+  line: 2.0                # 双倍行距（ICMJE 与多数医学期刊投稿要求）
+  h1_before_after_pt: 12
+  h2_before_after_pt: 6
+  h4_before_after_pt: 6
+  h6_before_after_pt: 3
+  body_before_after_lines: 0
+
+page:
+  size: A4
+  width_cm: 21.0
+  height_cm: 29.7
+  margin_cm: 2.54
+
+alignment:
+  title: left
+  h1: left
+  h2: left
+  h3: left
+  h4: left
+  h5: left
+  h6: left
+  h7: left
+  body: left               # 投稿版左对齐，不做两端对齐
+
+indent:
+  body_first_line_chars: 0
+  list_left: 0
+  list_hanging: 0
+
+color:
+  text: "000000"
+
+bold:
+  headings: true
+  headings_western: true
+  emphasis: true
+  table_header: true
+
+table:
+  style: three-line      # 三线表（学术/学位论文标准表形）
+  font_size_pt: 9
+  header_bold: true
+  shading: false
+  first_line_indent: false
+  line_spacing: 1.2
+  header_repeat: true
+  cant_split: true
+
+footer:
+  font: 宋体
+  font_size_pt: 10.5
+  color: "000000"
+  alignment: center
+  number_format: plain
+
+list:
+  auto_numbering: true
+  restart_per_block: true
+  indent_zero: true
+  space_after_number: true
+  first_line_indent: false
+  bold: false
+
+navigation:
+  heading_styles: true
+  outline_levels: [0, 1, 2, 3, 4, 5, 6]
+  title_in_toc: false
+
+numbering_scheme:
+  heading_levels: 3        # IMRaD 结构层次不深，正文内不再细分编号
+  heading_style: numeric
+  heading_kind: none       # 医学论文一级标题写「方法」「结果」，不加数字编号
+  heading_auto_number: false
+  heading_gap_check: off
+  space_after_number: true
+  body_list_style: "1./1)/(1)/①/a./(a)/i."
+  use_gongwen: false

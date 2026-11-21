@@ -1,0 +1,121 @@
+# 学术论文与期刊投稿（GB/T 7713.2-2022 + 国际通行体例）
+# ---------------------------------------------------------------
+# 适用：中文期刊论文、学报论文、会议论文、预印本；英文期刊 IMRaD 结构同理。
+#
+# 依据：GB/T 7713.2-2022《学术论文编写规则》、GB/T 7714-2025《信息与文献
+#       参考文献著录规则》（2026-07-01 实施，代替 2015 版）、GB/T 15834-2011《标点符号用法》、GB/T 15835-2011《出版物上
+#       数字用法》、GB 3100~3102《量和单位》；英文侧参照 ICMJE Recommendations
+#       与 APA 7 的通用版式（双倍行距、悬挂缩进、Times New Roman 12pt）。
+#
+# 与 default 的差异：章节编号不超过 4 级（国标建议）、图表公式全文连续编号、
+# 行距放宽到 1.5 倍、摘要与关键词按报道性摘要 400 字 / 关键词 3-8 个组织。
+# ---------------------------------------------------------------
+
+version: "1.0.0"
+profile:
+  name: academic-paper
+  title: 学术论文与期刊投稿
+  standard: GB/T 7713.2-2022
+  source: 学术论文编写规则 + GB/T 7714 + ICMJE/APA 7 通用版式
+  note: 摘要与关键词、参考文献著录、图表编号需按投稿期刊的具体须知调整
+
+fonts:
+  heading: 黑体
+  body: 宋体
+  western: Times New Roman
+
+sizes_pt:
+  doc_title: 16            # 三号（论文题目）
+  h1: 14                   # 四号（一级标题）
+  h2: 12                   # 小四（二级标题）
+  h3: 12
+  h4: 10.5
+  h5: 10.5
+  h6: 10.5
+  h7: 10.5
+  body: 10.5               # 五号（期刊论文正文，学报常用）
+  table: 9                 # 小五（三线表）
+  footer: 10.5
+
+spacing:
+  line: 1.5
+  h1_before_after_pt: 12
+  h2_before_after_pt: 6
+  h4_before_after_pt: 3
+  h6_before_after_pt: 3
+  body_before_after_lines: 0
+
+page:
+  size: A4
+  width_cm: 21.0
+  height_cm: 29.7
+  margin_cm: 2.5
+  margin_top_cm: 2.5
+  margin_bottom_cm: 2.5
+  margin_left_cm: 2.5
+  margin_right_cm: 2.5
+
+alignment:
+  title: center
+  h1: left
+  h2: left
+  h3: left
+  h4: left
+  h5: left
+  h6: left
+  h7: left
+  body: justify
+
+indent:
+  body_first_line_chars: 2
+  list_left: 0
+  list_hanging: 0
+
+color:
+  text: "000000"
+
+bold:
+  headings: true
+  headings_western: true
+  emphasis: true
+  table_header: true
+
+table:
+  style: three-line      # 三线表（学术/学位论文标准表形）
+  font_size_pt: 9
+  header_bold: true
+  shading: false
+  first_line_indent: false
+  line_spacing: 1.2
+  header_repeat: true
+  cant_split: true
+
+footer:
+  font: 宋体
+  font_size_pt: 10.5
+  color: "000000"
+  alignment: center
+  number_format: plain
+
+list:
+  auto_numbering: true
+  restart_per_block: true
+  indent_zero: true
+  space_after_number: true
+  first_line_indent: false
+  bold: false
+
+navigation:
+  heading_styles: true
+  outline_levels: [0, 1, 2, 3, 4, 5, 6]
+  title_in_toc: false
+
+numbering_scheme:
+  heading_levels: 4        # GB/T 7713.2：章节编号一般不超过 4 级
+  heading_style: numeric
+  heading_kind: numeric    # 1 / 1.1 / 1.1.1
+  heading_auto_number: true
+  heading_gap_check: error
+  space_after_number: true
+  body_list_style: "1./1)/(1)/①/a./(a)/i."
+  use_gongwen: false
