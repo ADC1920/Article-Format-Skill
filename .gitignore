@@ -32,3 +32,4 @@ desktop.ini
 # 本机配置
 .env
 *.local
+.commit-msg.txt
