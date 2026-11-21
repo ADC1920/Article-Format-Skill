@@ -1,0 +1,115 @@
+# 通用正式文章（formal-doc）
+# ---------------------------------------------------------------
+# 适用：方案、总结、汇报、调研报告、说明书、以及无行业强制规范的一般正式文章。
+#
+# 本 profile 由原「default 基线」独立而来（2026-11-21）。技能不再提供默认排版，
+# 每种文体都必须显式选定——但方案/总结这类通用文章确实需要一套干净可用的规格，
+# 故把这套规格保留为正式选项 formal-doc，而非隐式默认值。
+#
+# 版式：黑体标题 / 宋体小四正文 / 1.3 倍行距 / 首行缩进 2 字 / 数字式七级编号 /
+# A4 四边 2.54cm / 页码「- N -」。行业有强制规范时改用对应 profile。
+# ---------------------------------------------------------------
+
+profile:
+  name: formal-doc
+  title: 通用正式文章
+  standard: '-'
+  source: 本技能内置通用规范（原 default 基线，2026-11-21 改为正式文体选项）
+  note: 用于方案、总结、汇报、调研报告、说明书等无行业强制规范的正式文章
+fonts:
+  heading: 黑体
+  body: 宋体
+  western: Times New Roman
+sizes_pt:
+  doc_title: 18
+  h1: 15
+  h2: 14
+  h3: 14
+  h4: 12
+  h5: 12
+  h6: 10.5
+  h7: 10.5
+  body: 12
+  table: 12
+  footer: 12
+spacing:
+  line: 1.3
+  h1_before_after_pt: 17
+  h2_before_after_pt: 13
+  h4_before_after_pt: 6
+  h6_before_after_pt: 3
+  body_before_after_lines: 0.1
+page:
+  size: A4
+  width_cm: 21.0
+  height_cm: 29.7
+  margin_cm: 2.54
+alignment:
+  title: center
+  h1: center
+  h2: justify
+  h3: justify
+  h4: justify
+  h5: justify
+  h6: justify
+  h7: justify
+  body: justify
+indent:
+  body_first_line_chars: 2
+  list_left: 0
+  list_hanging: 0
+color:
+  text: '000000'
+bold:
+  headings: true
+  headings_western: true
+  emphasis: true
+  table_header: true
+table:
+  font_size_pt: 12
+  header_bold: true
+  shading: false
+  first_line_indent: false
+  line_spacing: 1.3
+  header_repeat: true
+  cant_split: true
+footer:
+  font: 宋体
+  font_size_pt: 12
+  color: '000000'
+  alignment: center
+list:
+  auto_numbering: true
+  restart_per_block: true
+  indent_zero: true
+  space_after_number: true
+  first_line_indent: false
+  bold: false
+  formats:
+    level1: '%1.'
+    level2: '%1)'
+    level3: (%1)
+    level4: '%1'
+    level5: '%1.'
+    level6: (%1)
+    level7: '%1.'
+navigation:
+  heading_styles: true
+  outline_levels:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  title_in_toc: false
+numbering_scheme:
+  heading_levels: 7
+  heading_style: numeric
+  heading_kind: numeric
+  heading_auto_number: true
+  heading_gap_check: error
+  space_after_number: true
+  body_list_style: 1./1)/(1)/①/a./(a)/i.
+  use_gongwen: false

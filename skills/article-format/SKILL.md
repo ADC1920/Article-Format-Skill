@@ -5,23 +5,23 @@ description: |
   Article formatting standard: produce Chinese article-style Word docx with heading styles, auto-numbered body lists, and navigation pane outline; supports per-genre profiles.
   **触发分支**：文章排版、排版规范、格式要求、生成 docx 文档、Word 排版、制度/论文/报告排版、md 转 Word、写方案、写总结、写制度、写通知、汇报材料、调研报告、实施方案、工作总结、说明书、操作手册、规章制度、公文格式、红头文件、学位论文格式、期刊投稿格式、技术文档排版、法律文书格式、新闻稿格式、教案格式、新媒体排版。
 metadata:
-  trigger: 文章类文档排版（全局默认，支持 13 种文体 profile）
+  trigger: 文章类文档排版（按文体强制选 profile，无默认）
   language: zh-CN
   scope: 全局
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # 文章排版规范（全局默认 · 多文体）
 
 文章、制度、论文、报告、方案、总结、通知、汇报材料等「文章类」文档默认按本规范排版并输出 docx。会议纪要自 2026-09-09 起同样走本规范（公文体已退役，见末节分工）。
 
-**v2.0（2026-11-21）新增三层能力**：①13 种文体 profile，按文体切换整套排版规格；②490 条规范库（14 个领域），可检索各行业文章规范的具体参数与结构要件；③三线表、固定行网格、中文层次序数、分边页边距等此前缺失的版式能力。
+**v2.1（2026-11-21）起无默认排版**：必须按文章性质选定文体 profile，不指定则脚本报错。v2.0 新增三层能力：①12 种文体 profile（另 formal-doc 通用档），按文体切换整套排版规格；②490 条规范库（14 个领域），可检索各行业文章规范的具体参数与结构要件；③三线表、固定行网格、中文层次序数、分边页边距等此前缺失的版式能力。
 
 ## 文体 profile 速选（先看这张表）
 
 | profile | 适用文体 | 关键版式特征 |
 |---|---|---|
-| `default` | 通用文章、方案、总结、汇报、调研报告 | 黑体标题/宋体小四/1.3 倍行距/首行缩进 2 字/数字式七级编号 |
+| `formal-doc` | 方案、总结、汇报、调研报告、说明书等通用正式文章 | 黑体标题/宋体小四/1.3 倍行距/首行缩进 2 字/数字式七级编号 |
 | `gov-official` | 党政机关公文 15 文种 | A4、上 3.7 下 3.5 左 2.8 右 2.6cm、3 号仿宋、固定行距 28.9 磅、「一、」「（一）」「1.」「（1）」、层次字体黑体/楷体/仿宋 |
 | `enterprise-doc` | 企业通知/请示/报告/总结/纪要 | 小四宋体、1.5 倍行距、公文式层次序数（密度优先） |
 | `thesis` | 本科/硕士/博士学位论文 | 页边距 3/2.5cm、1.5 倍行距、章标题「第1章」、三线表 |
@@ -35,7 +35,7 @@ metadata:
 | `teaching-doc` | 教案/教学设计/开题报告/教研论文 | 四号标题、五号表格（教学过程表）、1.5 倍行距 |
 | `social-media` | 公众号/小红书/知乎/短视频脚本 | 正文不缩进左对齐、1.75 倍行距、段距 0.3 行、无页码 |
 
-**用法**：`--profile <名>`；不指定时按 `ARTICLE_FORMAT_PROFILE` 环境变量，再缺省 `default`。列出全部：`python scripts/md2docx.py --list-profiles`。
+**用法**：`--profile <名>`；或设环境变量 `ARTICLE_FORMAT_PROFILE`。**本技能不使用默认排版**：两者都没有时脚本报错退出（exit 2）并列出可选文体，不会静默套一套规格。列出全部：`python scripts/md2docx.py --list-profiles`。
 
 ## 规范库（490 条，14 个领域）
 
@@ -79,7 +79,7 @@ python scripts/query_standards.py --keyword 必备 --domain finance --full
 python scripts/query_standards.py --keyword 依次 --domain gov --full
 ```
 
-`--full` 输出完整 specs 与来源，可直接用作写稿结构清单。**注意**：脚本只做关键词匹配，不解析结构语义，命中的条目要自己读一遍再决定是否采用。
+`--full` 输出完整 specs 全文，可直接用作写稿结构清单（规范库的 source 字段已清空，出处以条目名称中的标准号为准）。**注意**：脚本只做关键词匹配，不解析结构语义，命中的条目要自己读一遍再决定是否采用。
 
 ## 适用性保证（两层机制）
 
@@ -97,7 +97,7 @@ python scripts/query_standards.py --keyword 依次 --domain gov --full
 
 ### 1. 定 profile
 
-先判文体。命中下表的直接取对应 profile；判不准用 `default`（通用文章规范），并在交付说明里注明实际用了哪个 profile。
+先判文体。命中下表的直接取对应 profile。**判不出时不许随便挑一个**：先用 `query_standards.py` 查该文体在规范库里的定位，仍不确定就问用户——按错 profile 出的成品（如把学位论文按公文排）比多问一句代价大得多。交付时说明实际用了哪个 profile。
 
 - 公文/红头文件/请示/批复/通知（机关行文）→ `gov-official`
 - 企业内部通知/报告/总结/纪要/请示 → `enterprise-doc`
@@ -111,7 +111,8 @@ python scripts/query_standards.py --keyword 依次 --domain gov --full
 - 管理办法/操作规程/SOP/质量手册 → `regulation`
 - 教案/教学设计/开题报告/教研论文 → `teaching-doc`
 - 公众号/小红书/短视频脚本/营销文案 → `social-media`
-- 其余（方案、总结、汇报、调研报告、说明书、通用文章）→ `default`
+- 方案、总结、汇报、调研报告、说明书等通用正式文章 → `formal-doc`
+- 确实不属于以上任何一类 → 查规范库确认文体归属，再决定；仍无法归类时问用户
 
 需要核对某文体的具体参数时，先 `query_standards.py` 查规范库，再决定是否偏离 profile 默认值。
 
@@ -124,13 +125,13 @@ python scripts/query_standards.py --keyword 依次 --domain gov --full
 - 也可省略 `#` 前缀，编号独立成行：`1 绪论`、`1.1 实验装置` …… `1.1.1.1.1.1.1`（七级）
 - **中文式编号（v2.0）**：`一、总体要求`、`（一）工作目标`、`第一章 绪论` 在 profile 的
   `numbering_scheme.heading_kind` 为 `chinese` / `chapter` / `chinese-numeric` 时按形态定级
-  （一、→H1，（一）→H2，第一章→H1）；`default` profile 下这些行不按标题处理，避免正文列举误判
+  （一、→H1，（一）→H2，第一章→H1）；`formal-doc` 与 `academic-paper` 等 numeric 体系下这些行不按标题处理，避免正文列举误判
 - 无编号的 `##`~`#######` 前缀行按「# 数 - 1」兜底定级（`## 概述` → 一级）
 - **标题编号自动重排（v1.5，v2.0 扩展四种体系）**：章节编号由 Word 自动多级编号显示，脚本渲染标题时
   自动剥离源稿手写编号前缀（如 `## 1.1 实验装置` → docx 显示「1.1 实验装置」，编号来自 Word 而非文字），
   增删章节编号自动重排；源稿编号仅作层级提示，写错数值不影响成品编号，但**层级跳级（如 1 级下直接
   3 级）默认报错退出**（yaml `numbering_scheme.heading_gap_check`：error / warn / off）
-  - `numeric`：1 / 1.1 / 1.1.1（default、academic-paper、business-report 等）
+  - `numeric`：1 / 1.1 / 1.1.1（formal-doc、academic-paper、business-report 等）
   - `chinese`：一、/（一）/ 1. /（1）（gov-official、enterprise-doc、legal-doc）
   - `chapter`：第1章 / 1.1 / 1.1.1（thesis）
   - `none`：标题不加编号（tech-doc、medical-paper、social-media、press-release）
@@ -175,7 +176,9 @@ python "<skill_dir>/scripts/run_profile_regression.py" --keep   # 保留产物�
 
 ## 规格配置（唯一权威源）
 
-规格写在 **`<skill_dir>/article-format.yaml`**（default profile）与 **`<skill_dir>/profiles/*.yaml`**（其他文体）。改配置即改规格，**不需要改任何 Python 代码**。
+文体规格写在 **`<skill_dir>/profiles/<文体>.yaml`**。改配置即改规格，**不需要改任何 Python 代码**。
+
+`<skill_dir>/article-format.yaml` 是**字段级基线**（供各 profile 继承未写字段），不是可选文体，也不对外暴露。
 
 ```yaml
 fonts:      {heading: 黑体, body: 宋体, western: Times New Roman}
@@ -203,7 +206,7 @@ profile 文件只写与该默认值的差异，未写字段自动继承。可选
 - 临时套用别的规格：`ARTICLE_FORMAT_SPEC=/path/to/other.yaml python scripts/article_style.py in.docx out.docx`。
 - 指定文体：`ARTICLE_FORMAT_PROFILE=thesis` 环境变量，或 `--profile thesis` 参数。
 
-## 排版规格（default profile 默认值）
+## 排版规格（formal-doc 参考值）
 
 | 元素 | 字体字号 | 段落格式 |
 |---|---|---|

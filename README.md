@@ -1,16 +1,18 @@
 # Article-Format-Skill
 
-中文文章类文档的排版规范与生成工具。把 Markdown 草稿转成符合规范的 Word docx，按 13 种文体切换整套排版规格，并附带 490 条可检索的行业规范库。
+中文文章类文档的排版规范与生成工具。把 Markdown 草稿转成符合规范的 Word docx，按文体切换整套排版规格，并附带 490 条可检索的行业规范库。
+
+**没有默认排版**——每份文档都必须先按性质选定文体，脚本不指定就报错。这样不会出现「判不出文体就随便套一套」的情况。
 
 写作里最费时的不是想内容，是应付格式：公文要求三号仿宋加上 37mm 天头、学位论文要求章标题「第1章」配三线表、期刊论文要求五号正文配双倍行距。这些规矩散在各部国标、投稿须知和单位模板里，每次动手都要重查一遍。这个仓库把规范变成配置——选一个文体，剩下的交给脚本。
 
 ## 能力
 
-**13 种文体 profile**，每套独立规定字体、字号、行距、页边距、章节编号体系与表格样式：
+**13 种文体 profile**（12 个行业文体 + 1 个通用档），每套独立规定字体、字号、行距、页边距、章节编号体系与表格样式：
 
 | profile | 适用文体 | 关键差异 |
 | --- | --- | --- |
-| `default` | 通用文章、方案、总结、汇报、调研报告 | 黑体标题 / 宋体小四 / 1.3 倍行距 / 数字式七级编号 |
+| `formal-doc` | 方案、总结、汇报、调研报告、说明书等通用正式文章 | 黑体标题 / 宋体小四 / 1.3 倍行距 / 数字式七级编号 |
 | `gov-official` | 党政机关公文 15 文种 | 上 3.7 下 3.5 左 2.8 右 2.6cm、3 号仿宋、固定行距 28.9 磅、「一、」「（一）」层次序数 |
 | `enterprise-doc` | 企业通知、请示、报告、纪要 | 小四宋体、1.5 倍行距、公文式层次序数（信息密度优先） |
 | `thesis` | 本科至博士学位论文 | 页边距 3/2.5cm、章标题「第1章」、三线表 |
@@ -52,15 +54,20 @@ cp -r Article-Format-Skill/skills/article-format ~/.agents/skills/
 python -m pip install python-docx pyyaml
 ```
 
-生成文档：
+生成文档（`--profile` 必填，不指定会报错并列出可选文体）：
 
 ```bash
-# 通用文章
-python skills/article-format/scripts/md2docx.py 稿子.md 成品.docx
-
-# 指定文体
+# 公文
 python skills/article-format/scripts/md2docx.py 通知.md 成品.docx --profile gov-official
+
+# 方案 / 总结等通用正式文章
+python skills/article-format/scripts/md2docx.py 方案.md 成品.docx --profile formal-doc
+
+# 查看全部可选文体
+python skills/article-format/scripts/md2docx.py --list-profiles
 ```
+
+也可用环境变量 `ARTICLE_FORMAT_PROFILE=thesis` 指定。
 
 `md2docx.py` 内部已调用样式套用，一步出成品。也可对已有 docx 重排：
 

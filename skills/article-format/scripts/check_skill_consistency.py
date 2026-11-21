@@ -2,7 +2,7 @@
 """check_skill_consistency.py — 技能内文档与实物的交叉一致性检查。
 
 检查项：
-1. SKILL.md 里列出的每个 profile 名，profiles/ 下都有对应 yaml（default 对应根 yaml）
+1. SKILL.md 里列出的每个 profile 名，profiles/ 下都有对应 yaml
 2. profiles/ 下每个 yaml 的 profile.name 与文件名一致
 3. SKILL.md 里写的规范库条数（490）与 standards.jsonl 实际行数一致
 4. SKILL.md 里写的领域数与 query_standards 的领域数一致
@@ -40,12 +40,12 @@ def main():
 
     profiles = list_profiles()
     n_profiles = len(profiles)
-    check(f"profile 数量 {n_profiles} 个（含 default）", n_profiles >= 13,
+    check(f"文体 profile 数量 {n_profiles} 个", n_profiles >= 12,
           f"实际 {n_profiles}")
 
     # 1/2：SKILL.md 提到的每个 `xxx` profile 都在磁盘上
     mentioned = set(re.findall(r"`([a-z][a-z0-9-]+)`", md))
-    missing = [p for p in profiles if p not in md and p != "default"]
+    missing = [p for p in profiles if p not in md]
     check("SKILL.md 覆盖全部 profile 名", not missing, f"未提及：{missing}")
 
     # 3：yaml 内 profile.name 与文件名一致

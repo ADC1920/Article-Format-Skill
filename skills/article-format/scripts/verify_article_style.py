@@ -12,6 +12,7 @@
 """
 
 import re
+import os
 import sys
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -545,5 +546,20 @@ if __name__ == "__main__":
         _i += 1
     if _path is None:
         print(__doc__)
+        raise SystemExit(2)
+    # 本技能不使用默认排版：核验必须指定同一 profile，否则无法判断对不对
+    if not _profile and not (os.environ.get("ARTICLE_FORMAT_SPEC")
+                             or os.environ.get("ARTICLE_FORMAT_PROFILE")):
+        from spec_loader import list_profiles
+        sys.stderr.write(
+            "错误：未指定文体 profile。核验须与生成时用同一 profile。\n"
+            "可选：\n  " + "\n  ".join(list_profiles()) + "\n"
+            "用法：python verify_article_style.py 成品.docx --profile <名>\n")
+        raise SystemExit(2)
+    from spec_loader import ProfileNotFound, load_spec
+    try:
+        load_spec(profile=_profile)
+    except ProfileNotFound as exc:
+        sys.stderr.write("错误：" + str(exc) + "\n")
         raise SystemExit(2)
     raise SystemExit(main(_path, _profile))

@@ -1,5 +1,26 @@
 # article-format 技能变更记录
 
+## 2026-11-21 · v2.1.0：取消默认排版，改为按文体强制选择
+
+**动因**：用户指令「不需要默认规范，按文章的性质来选择排版，不固定」。v2.0 之前不指定 profile 时静默套用 default，等于给所有文体兜一套规格——判不出文体时出的成品可能整套版式都不对（如学位论文按通用文章排）。
+
+**变更**：
+
+| 文件 | 变更 |
+|---|---|
+| `profiles/formal-doc.yaml`（新增） | 原 default 基线独立成正式文体选项，适用范围明确为「方案、总结、汇报、调研报告、说明书等通用正式文章」。样式与旧 default 完全一致 |
+| `scripts/spec_loader.py` | `list_profiles()` 不再返回 default；`_spec_path` / `resolve_profile` 增加 `require` 参数，未指定文体时抛 `ProfileNotSpecified`；新增 `ProfileNotFound`——指定了不存在的文体名时报错而非静默回落基线（实测 `--profile not-exist` 此前照常出稿、套的是基线 12pt 正文） |
+| `scripts/article_style.py` | import 时不再强制要求 profile（否则连 `--list-profiles` 都跑不了），改为 `apply_article_style()` 入口拦截；`set_profile()` 置 `_PROFILE_SELECTED` |
+| `scripts/md2docx.py` | 无 profile 时列出可选文体并 exit 2；捕获 `ProfileNotFound`；`first` 参数改为可选，使 `--list-profiles` 可单独使用 |
+| `scripts/verify_article_style.py` | 核验同样要求 profile（须与生成时一致），并对未知文体名报错 |
+| `scripts/run_profile_regression.py` / `check_skill_consistency.py` | 清理 default 特殊分支，回归范围变为 12 个文体 profile |
+| `SKILL.md` | 文体表 default 行改 formal-doc；执行步骤「判不准用 default」改为「先查规范库，仍不确定问用户」；规格章节标明根 yaml 是字段级基线、非可选文体 |
+| `~/.zcode/scripts/article-default.js` + `~/.zcode/AGENTS.md` | 常驻注入文案同步：从「一律默认用本技能」改为「没有默认排版，必须先按文体选 profile」 |
+
+**行为变化**：不指定 profile 从「静默出稿」变为「报错退出（exit 2）并列出可选文体」；文体名写错从「静默套基线」变为「报错」。环境变量 `ARTICLE_FORMAT_PROFILE` 与 `--profile` 仍可用。
+
+**验证**：13 个 profile（12 文体 + formal-doc）回归全绿；三入口无 profile 均 exit 2；未知文体三入口均 exit 2；环境变量方式正常；`--list-profiles` 输出 12 个文体、不含 default；一致性检查 6 项全过。
+
 ## 2026-11-21 · v2.0.0：多文体 profile + 490 条规范库（从单套规格升级为分文体规格体系）
 
 **动因**：本技能此前只有一套「通用文章」规格，公文、学位论文、期刊论文、技术文档、法律文书等文体只能硬套同一组字体字号，与各自行业规范冲突（如公文要求 3 号仿宋 + 上 3.7/下 3.5/左 2.8/右 2.6cm 分边页边距、固定行距 28.9 磅、层次序数「一、」「（一）」；学位论文要求章标题「第1章」与三线表）。本次按用户指令收集 WPS 与全网各行业文章规范并融合升级。
@@ -316,7 +337,7 @@
 
 **回滚**：`~/.zcode/tmp/article-format-upgrade-backup-20260914-100431`（旧全量 + manifest-old-md5.txt），反向复制即还原。
 
-**验证**：端到端 md→docx 全链路通过——verify_article_style.py 60/60 PASS；verify_docx.py 通过；标题自动编号（Heading 1-7 绑定 numId=90 / ilvl 0-6，abstractNum 90 七级 lvlText %1…%1.%2…%7）；源稿手写编号剥离；标题跳级拦截（exit=1 + 行号定位）；stdin 安全模式；hook 脚本 JSON 合法 + 路径动态解析；officecli 渲染目检。验证件：`<验证目录>`。
+**验证**：端到端 md→docx 全链路通过——verify_article_style.py 60/60 PASS；verify_docx.py 通过；标题自动编号（Heading 1-7 绑定 numId=90 / ilvl 0-6，abstractNum 90 七级 lvlText %1…%1.%2…%7）；源稿手写编号剥离；标题跳级拦截（exit=1 + 行号定位）；stdin 安全模式；hook 脚本 JSON 合法 + 路径动态解析；officecli 渲染目检。验证件：`<本机工作目录>`。
 
 **观察（待源机侧确认）**：SKILL.md「主标题用 `# `」描述与实现不符——实测 `# xxx` 渲染为 Heading 1（进入目录），主标题由 `--title` 参数生成（Title 样式、不进目录）；示例 `## 1 绪论` 按实现为 H2。本机未擅改文档表述。
 

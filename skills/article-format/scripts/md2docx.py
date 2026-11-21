@@ -628,15 +628,15 @@ def render_to_docx(doc, parsed, use_title=None):
 def main(argv=None):
     import argparse
     parser = argparse.ArgumentParser(description="Markdown → 排版规范 docx")
-    parser.add_argument("first",
+    parser.add_argument("first", nargs="?",
                         help="输入 .md 文件；或 stdin 模式下的输出文件名")
     parser.add_argument("second", nargs="?",
                         help="输出文件名（提供 first 为 .md 时）")
     parser.add_argument("--title", default=None,
                         help="文档主标题（可选，不进入左侧目录树）")
     parser.add_argument("--profile", "-p", default=None,
-                        help="文体 profile（如 gov-official / thesis / news）；"
-                             "缺省用 default 或环境变量 ARTICLE_FORMAT_PROFILE")
+                        help="文体 profile（必填，如 gov-official / thesis / news）；"
+                             "也可用环境变量 ARTICLE_FORMAT_PROFILE")
     parser.add_argument("--list-profiles", action="store_true",
                         help="列出全部可用 profile 后退出")
     ns = parser.parse_args(argv if argv is not None else sys.argv[1:])
@@ -647,8 +647,26 @@ def main(argv=None):
             print(name)
         return 0
 
+    # 本技能不使用默认排版：必须按文章性质指定文体
+    if not ns.profile and not _as._PROFILE_SELECTED:
+        from spec_loader import list_profiles
+        sys.stderr.write(
+            "错误：未指定文体 profile。本技能不使用默认排版，必须按文章性质选择。\n"
+            "可选：\n  " + "\n  ".join(list_profiles()) + "\n"
+            "用法：python md2docx.py in.md out.docx --profile <名>\n"
+            "或设环境变量 ARTICLE_FORMAT_PROFILE=<名>。\n")
+        return 2
+
+    if ns.first is None:
+        parser.error("需要输入文件名（或 --list-profiles）")
+
     if ns.profile:
-        _as.set_profile(ns.profile)
+        from spec_loader import ProfileNotFound, list_profiles
+        try:
+            _as.set_profile(ns.profile)
+        except ProfileNotFound as exc:
+            sys.stderr.write(f"错误：{exc}" + "\n")
+            return 2
 
     if ns.second is not None:
         # 文件参数模式：in.md out.docx（读文件内容，输出仍固化到工作目录）

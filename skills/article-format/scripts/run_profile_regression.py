@@ -4,7 +4,7 @@
 用法：
     python run_profile_regression.py [--keep]
 
-对 profiles/ 下每个 profile（含 default）：用该 profile 生成一份样例文档，
+对 profiles/ 下每个文体 profile：用该 profile 生成一份样例文档，
 跑 verify_article_style.py 按同一 profile 口径核验，汇总 PASS/FAIL 与退出码。
 
 --keep 保留生成的 docx 供人工打开检查；默认跑完删除。
@@ -64,7 +64,7 @@ def _sample(profile):
 
 
 def run_one(profile, out_dir):
-    name = "default" if profile == "default" else profile
+    name = profile
     md_path = os.path.join(out_dir, f"{name}.md")
     docx_path = os.path.join(out_dir, f"{name}.docx")
     with open(md_path, "w", encoding="utf-8", newline="\n") as fh:
@@ -73,9 +73,7 @@ def run_one(profile, out_dir):
     env = dict(os.environ)
     env["ARTICLE_OUT_DIR"] = out_dir
     gen_cmd = [sys.executable, os.path.join(HERE, "md2docx.py"),
-               md_path, docx_path]
-    if profile != "default":
-        gen_cmd += ["--profile", profile]
+               md_path, docx_path, "--profile", profile]
     gen = subprocess.run(gen_cmd, capture_output=True, text=True, env=env,
                          encoding="utf-8", errors="replace")
     if gen.returncode != 0:
@@ -83,9 +81,7 @@ def run_one(profile, out_dir):
                 (gen.stderr or gen.stdout).strip()[-400:], docx_path)
 
     ver_cmd = [sys.executable, os.path.join(HERE, "verify_article_style.py"),
-               docx_path]
-    if profile != "default":
-        ver_cmd += ["--profile", profile]
+               docx_path, "--profile", profile]
     ver = subprocess.run(ver_cmd, capture_output=True, text=True, env=env,
                          encoding="utf-8", errors="replace")
     tail = [ln for ln in (ver.stdout or "").splitlines() if ln.strip()]

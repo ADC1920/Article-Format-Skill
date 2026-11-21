@@ -163,23 +163,29 @@ def _profile_dir():
 
 
 def list_profiles():
-    """列出可用 profile 名（含 default，按字母序）。profile 目录缺失时只返回 default。"""
-    names = [DEFAULT_PROFILE]
+    """列出可用文体 profile 名（按字母序）。不含 default（基线不再对外提供）。"""
+    names = []
     pdir = _profile_dir()
     if os.path.isdir(pdir):
         for fn in sorted(os.listdir(pdir)):
             if fn.endswith((".yaml", ".yml")):
-                name = os.path.splitext(fn)[0]
-                if name not in names:
-                    names.append(name)
+                names.append(os.path.splitext(fn)[0])
     return names
 
 
-def _profile_path(profile):
-    """profile 名 → yaml 绝对路径；default 指向技能根目录的 article-format.yaml。
+class ProfileNotSpecified(Exception):
+    """未指定 profile 时抛出——本项目不使用「默认规范」，必须按文体选。"""
 
-    未知名直接返回 profiles/<name>.yaml 路径（由 load_spec 报缺失并回落默认），
-    避免静默套用错误规格。
+
+class ProfileNotFound(Exception):
+    """指定了 profile 但找不到对应 yaml（文体名写错）时抛出。"""
+
+
+def _profile_path(profile):
+    """profile 名 → yaml 绝对路径。
+
+    `default` 保留为内部基线（profile 的字段继承来源），不对外当文体用。
+    未知名返回 profiles/<name>.yaml（由 load_spec 报缺失）。
     """
     if profile in (None, "", DEFAULT_PROFILE):
         return os.path.join(_skill_root(), SPEC_FILENAME)
@@ -190,24 +196,36 @@ def _profile_path(profile):
     return os.path.join(_profile_dir(), profile + ".yaml")
 
 
-def _spec_path(profile=None):
+def _spec_path(profile=None, require=True):
     """配置文件路径。
 
     优先级：ARTICLE_FORMAT_SPEC（绝对路径覆盖）> profile 参数 >
-    环境变量 ARTICLE_FORMAT_PROFILE > default。
+    环境变量 ARTICLE_FORMAT_PROFILE。
+    require=True 且三者都没有时抛 ProfileNotSpecified——
+    本技能不提供「默认文体」，避免判不出文体时静默套一套不合适的位置。
     """
     override = os.environ.get(ENV_SPEC_PATH)
     if override:
         return override
-    chosen = profile or os.environ.get(ENV_PROFILE) or DEFAULT_PROFILE
+    chosen = profile or os.environ.get(ENV_PROFILE)
+    if not chosen:
+        if require:
+            raise ProfileNotSpecified(
+                "未指定文体 profile。本技能不使用默认排版，必须按文章性质选择：\n  "
+                + "、".join(list_profiles())
+                + "\n用法：--profile <名>，或设环境变量 ARTICLE_FORMAT_PROFILE。")
+        chosen = DEFAULT_PROFILE
     return _profile_path(chosen)
 
 
-def resolve_profile(profile=None):
+def resolve_profile(profile=None, require=True):
     """返回本次实际生效的 profile 名（用于日志与交付说明）。"""
     if os.environ.get(ENV_SPEC_PATH):
         return "custom:" + os.environ[ENV_SPEC_PATH]
-    return profile or os.environ.get(ENV_PROFILE) or DEFAULT_PROFILE
+    chosen = profile or os.environ.get(ENV_PROFILE)
+    if not chosen and not require:
+        return DEFAULT_PROFILE
+    return chosen
 
 
 def _deep_merge(base, override):
@@ -221,24 +239,36 @@ def _deep_merge(base, override):
     return result
 
 
-def load_spec(verbose=False, profile=None):
-    """加载规格配置，失败时静默回落到 DEFAULT_SPEC。
+def load_spec(verbose=False, profile=None, require=True):
+    """加载指定文体的规格配置。
 
     profile: 文体 profile 名（如 "gov-official"）；None 时读环境变量
-    ARTICLE_FORMAT_PROFILE，再退回 default。profile 文件只写与通用规格的差异，
-    未写的字段由 _deep_merge 继承 DEFAULT_SPEC。
+    ARTICLE_FORMAT_PROFILE。两者都没有且 require=True 时抛 ProfileNotSpecified——
+    本技能不使用默认排版，必须按文章性质选 profile。
+    profile 文件只写与该文体的差异，未写字段由 _deep_merge 继承 DEFAULT_SPEC
+    这一字段级基线（基线是内部实现，不是可选文体）。
+
+    require=False 仅供内部工具（如回归脚本读基线字段）使用。
     """
-    path = _spec_path(profile)
+    path = _spec_path(profile, require=require)
     try:
         import yaml
     except ImportError:
         if verbose:
-            print(f"[提示] 未安装 PyYAML，使用内置默认规格（{path} 未加载）")
+            print(f"[提示] 未安装 PyYAML，使用内置基线规格（{path} 未加载）")
         return dict(DEFAULT_SPEC)
 
     if not os.path.exists(path):
+        # 指定了 profile 但文件不存在 = 文体名写错，必须报错。
+        # 此前静默回落基线规格，会产出「看起来正常但文体不对」的文档（实测：
+        # --profile not-exist 照常出稿，套的是基线 12pt 正文）。
+        chosen = resolve_profile(profile, require=False)
+        if require and chosen not in (None, "", DEFAULT_PROFILE):
+            raise ProfileNotFound(
+                f"未找到文体 profile「{chosen}」：{path}\n"
+                "可用：\n  " + "\n  ".join(list_profiles()))
         if verbose:
-            print(f"[提示] 未找到 {path}，使用内置默认规格")
+            print(f"[提示] 未找到 {path}，使用内置基线规格")
         return dict(DEFAULT_SPEC)
 
     try:

@@ -76,7 +76,7 @@ def main(argv=None):
                     choices=["high", "medium", "low"], help="最低置信度")
     ap.add_argument("--limit", type=int, default=0, help="最多输出条数（0=不限）")
     ap.add_argument("--json", action="store_true", help="输出 JSON 行原文")
-    ap.add_argument("--full", action="store_true", help="输出完整规格与来源")
+    ap.add_argument("--full", action="store_true", help="输出完整规格全文")
     ns = ap.parse_args(argv if argv is not None else sys.argv[1:])
 
     rows = load()

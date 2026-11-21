@@ -30,6 +30,7 @@
 """
 
 import copy
+import os
 import re
 from docx import Document
 from docx.enum.section import WD_SECTION
@@ -40,11 +41,28 @@ from docx.shared import Pt, Cm
 
 from spec_loader import load_spec, resolve_profile
 
-# 规格唯一权威源：技能根目录 article-format.yaml（默认 profile）或 profiles/<文体>.yaml。
-# 改 yaml 即改规格，无需改本文件常量。常量由 _init_spec_constants() 统一赋值，
-# 可在同一进程内用 set_profile() 切换文体（重新套用另一套规格）。
-SPEC = load_spec()
-PROFILE = resolve_profile()
+# 规格唯一权威源：profiles/<文体>.yaml（文体规格）+ 技能根目录 article-format.yaml
+# （字段级基线，内部用，不作为可选文体）。
+#
+# 本技能**不使用默认排版**：必须按文章性质指定 profile。import 时若未指定，
+# 不立刻报错（否则任何 import 都会崩，连 --list-profiles 都跑不了），而是加载
+# 基线占位，等真正调用 apply_article_style() 时由 _require_profile() 拦截。
+SPEC = load_spec(require=False)
+PROFILE = resolve_profile(require=False)
+
+# 是否已显式选定文体（决定 apply_article_style 能否执行）
+_PROFILE_SELECTED = bool(os.environ.get("ARTICLE_FORMAT_SPEC")
+                         or os.environ.get("ARTICLE_FORMAT_PROFILE"))
+
+
+def _require_profile():
+    """未选定文体时抛出明确错误，阻止静默套用基线规格。"""
+    if not _PROFILE_SELECTED:
+        from spec_loader import list_profiles, ProfileNotSpecified
+        raise ProfileNotSpecified(
+            "未指定文体 profile。本技能不使用默认排版，必须按文章性质选择：\n  "
+            + "、".join(list_profiles())
+            + "\n用法：--profile <名>，或设环境变量 ARTICLE_FORMAT_PROFILE。")
 
 
 # --------------------------------------------------------------------------- #
@@ -205,14 +223,15 @@ PAGE_NUMBER_FORMAT = str(
 
 
 def set_profile(profile):
-    """在同一进程内切换文体 profile（重载规格并刷新全部模块常量）。
+    """切换文体 profile（重载规格并刷新全部模块常量）。
 
-    脚本 --profile 参数与测试用；import 时已按 ARTICLE_FORMAT_PROFILE
-    环境变量初始化，常规流程无需调用。
+    这是选定文体的标准入口：脚本 --profile 参数、测试、库调用都走这里。
+    调用后 _PROFILE_SELECTED 置真，apply_article_style 方可执行。
     """
-    global SPEC, PROFILE
+    global SPEC, PROFILE, _PROFILE_SELECTED
     SPEC = load_spec(profile=profile)
     PROFILE = resolve_profile(profile)
+    _PROFILE_SELECTED = True
     _refresh_spec_constants()
     return SPEC
 
@@ -908,11 +927,16 @@ def _set_table_cross_page(doc):
 
 
 def apply_article_style(doc):
-    """对整篇文档套用排版规范十三条规定。返回 doc（同对象）。
+    """对整篇文档套用当前选定文体的排版规格。返回 doc（同对象）。
 
     幂等：可重复调用。适合 md2docx.py 生成骨架后调用，也适合对已有 docx
     重新套样式。
+
+    前置条件：必须先选定文体（set_profile / --profile / ARTICLE_FORMAT_PROFILE）。
+    本技能不提供默认排版——未选定时抛 ProfileNotSpecified，避免静默套用
+    一套与文体不符的规格。
     """
+    _require_profile()
     # ---- 正文 Normal ---- #
     normal = doc.styles["Normal"]
     normal.font.name = FONT_EN
@@ -1092,7 +1116,19 @@ def main(argv=None):
         return 2
     in_path, out_path = rest[0], rest[1]
     if profile:
-        set_profile(profile)
+        from spec_loader import ProfileNotFound
+        try:
+            set_profile(profile)
+        except ProfileNotFound as exc:
+            sys.stderr.write(f"错误：{exc}" + "\n")
+            return 2
+    from spec_loader import list_profiles, ProfileNotSpecified
+    if not _PROFILE_SELECTED:
+        sys.stderr.write(
+            "错误：未指定文体 profile。本技能不使用默认排版，必须按文章性质选择。\n"
+            "可选：\n  " + "\n  ".join(list_profiles()) + "\n"
+            "用法：python article_style.py <in.docx> <out.docx> --profile <名>\n")
+        return 2
     doc = Document(in_path)
     apply_article_style(doc)
     doc.save(out_path)
