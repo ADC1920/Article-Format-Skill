@@ -8,12 +8,14 @@ metadata:
   trigger: 文章类文档排版（按文体强制选 profile，无默认）
   language: zh-CN
   scope: 全局
-  version: "2.2.0"
+  version: "2.2.1"
 ---
 
 # 文章排版规范（全局默认 · 多文体）
 
 文章、制度、论文、报告、方案、总结、通知、汇报材料等「文章类」文档默认按本规范排版并输出 docx。会议纪要自 2026-09-09 起同样走本规范（公文体已退役，见末节分工）。
+
+**v2.2.1（2026-11-22）**：清理遗留错误——删 5 处未使用导入；`pyproject.toml` 的 `readme` 改指不含 frontmatter 的 `PACKAGE.md`、`license` 改 SPDX 写法（旧写法构建报弃用警告）；`verify_docx.py` 从孤儿脚本接入测试与文档（6 项新测试）；新增「文档声称的测试项数须与实际一致」断言。
 
 **v2.2（2026-11-22）新增**：①profile 未知键校验（写错键立刻报错，不再静默失效）；②`--base-template` / `--keep-until` 底模注入（红头、封面、声明页可保留）；③profile 可声明 `required_sections` 必备章节，交付前校验结构完整性；④pytest 测试套件 + 三平台 CI；⑤输出路径保留子目录（原先静默丢弃目录成分）。
 
@@ -215,14 +217,23 @@ python "<skill_dir>/scripts/verify_article_style.py" 最终.docx [--profile <文
 
 **结构要件校验**（v2.2 新增）：profile 可用 `profile.required_sections` 声明必备章节关键词，verify 按标题与正文文本做存在性检查。已在 academic-paper（摘要/关键词/参考文献）、thesis（同）、medical-paper（摘要/关键词/方法/结果/讨论/参考文献）声明。缺项报 `[FAIL] 结构 必备章节齐全` 并列出缺什么；未声明的 profile 该项直接通过。**只判有无，不判质量与顺序。**
 
+**转换完整性校验**（`verify_docx.py`）：与上面的版式校验是两件事，不能互相替代。
+
+```bash
+python "<skill_dir>/scripts/verify_docx.py" 源稿.md 成品.docx [--title-in-docx]
+```
+
+它比的是「源稿有的东西产物里有没有」：md 侧标题数与表格数按与 `md2docx.parse_markdown` 相同口径统计（围栏内文本不计、行首日期不计），docx 侧按样式判定，容差 0。用途是挡「样式全对但内容丢了」这类失败——比如长文档转换中整张表没输出、某个章节标题消失。空表格也会被单独报出来。
+
+用 `--title` 显式传主标题时，docx 会多一个 Title 段落，需加 `--title-in-docx` 声明，否则两侧数量对不上。
+
 也可直接跑全部 profile 的端到端回归：
 
 ```bash
 python "<skill_dir>/scripts/run_profile_regression.py"          # 13 个 profile 全跑一遍
 python "<skill_dir>/scripts/run_profile_regression.py" --keep   # 保留产物供目检
-python -m pytest tests/ -q                                      # 单元 + 真实样张端到端 + 负向门禁
+python -m pytest tests/ -q                                      # 单元 + 真实样张端到端 + 负向门禁（pytest 65 项）
 ```
-
 `tests/` 与 `run_profile_regression.py` 的分工：后者用 25 行极简样例验「同一输入在 13 套规格下自洽」；前者用 `tests/samples/medium-article.md`（31 行表格、七级嵌套列表、日期行首、代码块、分页符）验真实文章形态，并含**负向门禁测试**——篡改字体/字号后确认 verify 真的报 FAIL，防止门禁空转。
 
 人工核对要点：标题黑体、正文宋体小四、正文标号顶格且为自动编号、页脚页码、标题编号连续。属公文/学位论文等有封面与声明页的文体，封面、页眉章名、印章、成文日期位置仍需按单位模板人工处理——脚本不代劳（可用 `--base-template` 承接）。
@@ -310,6 +321,15 @@ profile 文件只写与该默认值的差异，未写字段自动继承。可选
 | 回归（只读） | `scripts/run_profile_regression.py` + `pytest tests/` | 13 个 profile 端到端核验 + 真实样张 + 负向门禁 |
 
 通道从 `spec_loader.load_spec()` 读 yaml；改规格只改 yaml，不改代码。（pandoc 通用通道已于 2026-09-11 按用户指令移除。）
+
+**开发期工具**（规范库维护用，日常出稿不涉及）：
+
+| 脚本 | 用途 |
+|---|---|
+| `scripts/build_standards_catalog.py` | 把调研产出的分域 jsonl 合并为 `references/standards/` 三层结构 |
+| `scripts/apply_verification.py` | 把标准号核查结果（`verification.jsonl`）回填进规范库条目 |
+
+这两个脚本只在增补或订正规范库时用，运行需要额外的中间产物（调研 jsonl、核查结果），普通使用者不需要跑。
 
 ## 触发覆盖（100% 保证，两层机制）
 

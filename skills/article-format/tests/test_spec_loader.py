@@ -126,3 +126,41 @@ def test_version_single_source():
     assert DEFAULT_SPEC["version"] == yaml_version, (
         f"版本不一致：DEFAULT_SPEC={DEFAULT_SPEC['version']} "
         f"yaml={yaml_version}")
+
+
+def test_documented_test_count_matches():
+    """文档里声称的测试项数必须与实际收集到的一致。
+
+    这类数字最容易漂：加一个测试文件就过期，而没有任何东西会报错。
+    table-format 曾因同样的漂移把「408 项」写成旧值，故这里钉死。
+    找不到声称值就跳过（文档可能选择不写具体数字）。
+    """
+    import re
+    import subprocess
+    import sys
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    claimed = None
+    for path in (os.path.join(root, "SKILL.md"),
+                 os.path.join(root, "README.md"),
+                 os.path.join(root, "..", "README.md")):
+        if not os.path.exists(path):
+            continue
+        with open(path, encoding="utf-8") as fh:
+            m = re.search(r"pytest[^\n]*?(\d+)\s*项", fh.read())
+        if m:
+            claimed = int(m.group(1))
+            break
+    if claimed is None:
+        return
+    # pyproject 的 addopts 带 -q，与命令行 -q 叠成 -qq 会吞掉汇总行，
+    # 故用 --override-ini 清空 addopts 后再取数。
+    r = subprocess.run([sys.executable, "-m", "pytest", "tests/",
+                        "--collect-only", "-q",
+                        "--override-ini=addopts="],
+                       cwd=root, capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
+    m = re.search(r"(\d+)\s+tests? collected", r.stdout + r.stderr)
+    assert m, f"无法获取测试项数：{(r.stdout + r.stderr)[-500:]}"
+    actual = int(m.group(1))
+    assert claimed == actual, (
+        f"文档声称 {claimed} 项，实际 {actual} 项。请同步文档里的数字。")

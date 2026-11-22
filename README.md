@@ -139,10 +139,13 @@ python skills/article-format/scripts/article_style.py 旧.docx 新.docx --profil
 # 单个文档（约 100 项断言，退出码 0 才可交付）
 python skills/article-format/scripts/verify_article_style.py 成品.docx --profile thesis
 
+# 转换完整性：源稿的标题数与表格数在产物里有没有对上（内容丢失检测）
+python skills/article-format/scripts/verify_docx.py 源稿.md 成品.docx
+
 # 全部 profile 端到端回归
 python skills/article-format/scripts/run_profile_regression.py
 
-# 单元 + 真实样张端到端 + 负向门禁（58 项）
+# 单元 + 真实样张端到端 + 负向门禁（pytest 65 项）
 python -m pytest tests/ -q
 
 # 技能文档与实物一致性（9 项）
@@ -150,6 +153,8 @@ python skills/article-format/scripts/check_skill_consistency.py
 ```
 
 `verify_article_style.py` 查字体、字号、段距、行距、纸型、页边距、编号体系、页码格式、三线表、表格跨页规则与 OOXML schema 顺序，外加 `required_sections` 结构要件。
+
+`verify_docx.py` 查的是另一件事：样式全对但内容在转换中丢了。它按同一口径统计源稿与产物的标题数、表格数，容差 0，空表格会单独报出来。用 `--title` 传主标题时需加 `--title-in-docx` 校正数量。
 
 `tests/` 用 `tests/samples/medium-article.md`（31 行表格、七级嵌套列表、日期行首、代码块、分页符）跑真实文章形态，并含**负向门禁测试**——篡改字体字号后确认 verify 真的报 FAIL，防止门禁空转。
 
@@ -221,6 +226,7 @@ list:
 ```
 skills/article-format/
 ├── SKILL.md                    技能主文档（profile 速选表、规范库索引、执行步骤）
+├── PACKAGE.md                  包说明（pyproject 的 long_description 来源，不含技能 frontmatter）
 ├── article-format.yaml         字段级基线规格（供各 profile 继承）
 ├── pyproject.toml              依赖版本约束（python-docx / PyYAML / pytest）
 ├── profiles/                   13 个文体 profile

@@ -33,7 +33,7 @@ ENV_SPEC_PATH = "ARTICLE_FORMAT_SPEC"
 
 # 内置默认值：必须与 article-format.yaml 保持一致（配置文件缺失时的兜底）
 DEFAULT_SPEC = {
-    "version": "2.2.0",
+    "version": "2.2.1",
     "fonts": {
         "heading": "黑体",
         "body": "宋体",

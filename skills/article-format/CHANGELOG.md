@@ -1,5 +1,27 @@
 # article-format 技能变更记录
 
+## 2026-11-22 · v2.2.1：清理遗留错误（未使用导入、包元数据、孤儿脚本）
+
+**动因**：用户指令「修掉遗留错误」。用 AST 静态分析扫全脚本、实际构建 wheel 验元数据、逐脚本查引用与测试覆盖，发现六类问题。
+
+**变更**：
+
+| 文件 | 变更 |
+|---|---|
+| `scripts/apply_verification.py` | 删未使用的 `import os` |
+| `scripts/article_style.py` | 删未使用的 `import copy` 与 `from docx.enum.section import WD_SECTION`（`copy` 在全文件仅出现于 import 行本身，`WD_SECTION` 同理） |
+| `scripts/md2docx.py` | 删未使用的 `from spec_loader import load_spec`（改规格走 `_as.SPEC`，从未直接调 `load_spec`） |
+| `scripts/verify_docx.py` | 删未使用的 `import sys` |
+| `pyproject.toml` | `readme = "SKILL.md"` → `"PACKAGE.md"`：SKILL.md 开头是技能 frontmatter，构建成 long_description 会把 YAML 键值对原样塞进包元数据（实测 wheel 的 METADATA 里就是 `name: article-format` / `description: \|` 一堆）。新增 `PACKAGE.md` 作为纯正文的包说明 |
+| `pyproject.toml` | `license = { text = "Proprietary" }` → `license = "LicenseRef-Proprietary"`：前者是 setuptools 旧写法，实测构建报弃用警告且 2027-02 后失效。同时把 `requires` 从 `setuptools>=68` 提到 `>=77`（SPDX 字符串写法需要） |
+| `tests/test_verify_docx.py`（新增） | `verify_docx.py` 此前是孤儿：功能完好但零入口引用、零测试覆盖、SKILL.md 零提及。补 6 项测试（结构一致 / 空表格检测 / 标题数错配 / `--title-in-docx` 校正 / 日期行首不误计 / 围栏注释不误计） |
+| `SKILL.md` | 补 `verify_docx` 用法段（说明它与 `verify_article_style` 的职责分工：前者查内容有没有丢，后者查版式对不对）；补「开发期工具」表说明 `build_standards_catalog` 与 `apply_verification` 的用途 |
+| `tests/test_spec_loader.py` | 新增 `test_documented_test_count_matches`：文档声称的 pytest 项数必须与实际收集数一致。这类数字最容易漂且无东西会报错 |
+
+**过程中修掉的自身 bug**：新增的项数一致性断言第一次跑不通——`pyproject.toml` 的 `addopts = "-q"` 与命令行 `-q` 叠成 `-qq`，pytest 会吞掉 `N tests collected` 汇总行。改用 `--override-ini=addopts=` 清空后再取数。反证：把文档改成「pytest 99 项」后断言报 `文档声称 99 项，实际 65 项`。
+
+**验证**：pytest 58 → 65 项全绿；一致性 9/9；13 profile 回归 13/13；`python -m build` 零警告，wheel METADATA 为 `License-Expression: LicenseRef-Proprietary` 且 long_description 无 frontmatter。
+
 ## 2026-11-22 · v2.2.0：配置可信、工程基线、底模注入（P0-P3 全量重构）
 
 **动因**：用户要求从后端工程师视角全面评估后实施 P0-P3 全部优化项。评估实测发现四类静默失败：改配置不生效、输出路径丢目录、版本号三源不一致、缺文件抛 traceback；工程层无依赖约束、无测试、无 CI。

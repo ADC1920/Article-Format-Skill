@@ -29,11 +29,9 @@
     python article_style.py <in.docx> <out.docx>   # 对已生成骨架的文档套用样式
 """
 
-import copy
 import os
 import re
 from docx import Document
-from docx.enum.section import WD_SECTION
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
