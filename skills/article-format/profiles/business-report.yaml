@@ -112,10 +112,7 @@ navigation:
 
 numbering_scheme:
   heading_levels: 5        # 报告类章节层次较深
-  heading_style: numeric
   heading_kind: numeric    # 1 / 1.1 / 1.1.1
   heading_auto_number: true
   heading_gap_check: error
   space_after_number: true
-  body_list_style: "1./1)/(1)/①/a./(a)/i."
-  use_gongwen: false

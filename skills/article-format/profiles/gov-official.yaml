@@ -133,10 +133,7 @@ navigation:
 
 numbering_scheme:
   heading_levels: 4        # 公文层次序数最深到「（1）」，再往下一律用自然段表述
-  heading_style: chinese
   heading_kind: chinese    # 一、/（一）/1./（1）
   heading_auto_number: true
   heading_gap_check: warn  # 公文实际行文常跳级（如无「（一）」直接用「1.」），只告警
   space_after_number: false  # 中文序数后不空格
-  body_list_style: "一、/（一）/1./（1）"
-  use_gongwen: true

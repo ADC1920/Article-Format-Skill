@@ -113,10 +113,7 @@ navigation:
 
 numbering_scheme:
   heading_levels: 7
-  heading_style: numeric
   heading_kind: none       # 技术文档标题不加章节编号
   heading_auto_number: false
   heading_gap_check: off
   space_after_number: false
-  body_list_style: "1. / - / ·"
-  use_gongwen: false

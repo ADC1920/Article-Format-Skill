@@ -6,6 +6,13 @@
 
 写作里最费时的不是想内容，是应付格式：公文要求三号仿宋加上 37mm 天头、学位论文要求章标题「第1章」配三线表、期刊论文要求五号正文配双倍行距。这些规矩散在各部国标、投稿须知和单位模板里，每次动手都要重查一遍。这个仓库把规范变成配置——选一个文体，剩下的交给脚本。
 
+## 最近更新（v2.2.0）
+
+- **底模注入**：`--base-template 模板.docx --keep-until 锚点` 把正文灌进单位模板，封面、红头、原创性声明页原样保留。
+- **结构要件门禁**：profile 可声明 `required_sections`，交付前校验必备章节（论文缺摘要会报 FAIL，不再只查版式）。
+- **配置可信**：profile 写错键在加载时直接报错并列出可疑键。此前把 `list.formats` 改成任何值都不会生效，且一声不响。
+- **工程基线**：`pyproject.toml` 锁依赖版本；`pytest` 58 项测试（含篡改字体验门禁真会拦的负向用例）；三平台 × 三 Python 版本 CI。
+
 ## 能力
 
 **13 种文体 profile**（12 个行业文体 + 1 个通用档），每套独立规定字体、字号、行距、页边距、章节编号体系与表格样式：
@@ -26,7 +33,7 @@
 | `teaching-doc` | 教案、教学设计、开题报告、教研论文 | 四号标题、五号表格（教学过程表） |
 | `social-media` | 公众号、小红书、知乎、短视频脚本 | 正文不缩进左对齐、1.75 倍行距、无页码 |
 
-**490 条规范库**，覆盖 14 个领域 46 个子类。每条含名称、可执行规格、适用文体、来源与置信度（high 303 / medium 177 / low 10）。标准号经 openstd.samr.gov.cn 与 iso.org 逐条核对。
+**490 条规范库**，覆盖 14 个领域 46 个子类。每条含名称、可执行规格、适用文体与置信度（high 304 / medium 176 / low 10）。`query_standards.py --audit` 可查可溯源性：其中 172 条无标准号且非 high 置信度，只能当写作提示，不作排版依据。
 
 | 领域 | 条数 | 领域 | 条数 |
 | --- | --- | --- | --- |
@@ -174,20 +181,25 @@ numbering_scheme:
 ```
 skills/article-format/
 ├── SKILL.md                    技能主文档（profile 速选表、规范库索引、执行步骤）
-├── article-format.yaml         default profile 规格（唯一权威源之一）
-├── profiles/                   12 个文体 profile
+├── article-format.yaml         字段级基线规格（供各 profile 继承）
+├── pyproject.toml              依赖版本约束（python-docx / PyYAML / pytest）
+├── profiles/                   13 个文体 profile
 ├── references/standards/       490 条规范库（索引 + 14 个分域详表 + jsonl）
+├── tests/                      pytest：规格契约 / 路径语义 / 真实样张端到端 / 负向门禁
+│   └── samples/                medium-article.md（长表格、七级嵌套、日期行首、代码块）
 └── scripts/
-    ├── md2docx.py              Markdown → docx 骨架
+    ├── md2docx.py              Markdown → docx 骨架（含 --base-template 底模注入）
     ├── article_style.py        样式内核（标题/正文/编号/表格/页码）
-    ├── spec_loader.py          profile 加载与规格合并
-    ├── verify_article_style.py 规格核验（约 100 项断言）
-    ├── query_standards.py      规范库检索
+    ├── spec_loader.py          profile 加载、规格合并与未知键校验
+    ├── verify_article_style.py 规格核验（约 100 项断言 + 结构要件门禁）
+    ├── query_standards.py      规范库检索（--audit 可溯源性审计）
     ├── build_standards_catalog.py  调研数据 → 规范库
     ├── apply_verification.py   标准号核查结果回填
     ├── run_profile_regression.py   全 profile 回归
-    └── check_skill_consistency.py  文档与实物一致性
+    └── check_skill_consistency.py  文档与实物一致性（9 项检查）
 ```
+
+CI 位于仓库根 `.github/workflows/ci.yml`（GitHub Actions 只识别仓库根），矩阵跑 Windows / Ubuntu / macOS × Python 3.9 / 3.11 / 3.12。
 
 ## 许可
 

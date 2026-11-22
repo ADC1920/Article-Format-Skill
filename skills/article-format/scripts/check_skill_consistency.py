@@ -101,7 +101,41 @@ def main():
         for key in ("heading", "body", "western"):
             if not spec.get("fonts", {}).get(key):
                 bad.append(f"{prof} fonts.{key} 为空")
+        # 结构要件必须是字符串列表（verify 按文本包含匹配）
+        req = (spec.get("profile") or {}).get("required_sections")
+        if req is not None:
+            if not isinstance(req, list) or not all(isinstance(x, str) and x for x in req):
+                bad.append(f"{prof} required_sections 须为非空字符串列表：{req!r}")
     check("全部 profile 的取值合法", not bad, str(bad[:5]))
+
+    # 7：版本号单一来源（DEFAULT_SPEC 与基线 yaml 必须一致）
+    from spec_loader import DEFAULT_SPEC
+    import yaml as _yaml
+    with open(os.path.join(ROOT, "article-format.yaml"), encoding="utf-8") as fh:
+        yaml_version = (_yaml.safe_load(fh) or {}).get("version")
+    check(f"版本号单一来源（{DEFAULT_SPEC['version']}）",
+          DEFAULT_SPEC["version"] == yaml_version,
+          f"DEFAULT_SPEC={DEFAULT_SPEC['version']} yaml={yaml_version}")
+
+    # 8：已废弃的死键不得回流（heading_style/body_list_style/use_gongwen/formats）
+    dead_prefix = ("heading_style:", "body_list_style:", "use_gongwen:", "formats:")
+    dead_hits = []
+    for path in [os.path.join(ROOT, "article-format.yaml")] + [
+            os.path.join(pdir, fn) for fn in sorted(os.listdir(pdir))
+            if fn.endswith((".yaml", ".yml"))]:
+        with open(path, encoding="utf-8") as fh:
+            for lineno, line in enumerate(fh, 1):
+                s = line.strip()
+                if s.startswith("#"):
+                    continue
+                if any(s.startswith(k) for k in dead_prefix):
+                    dead_hits.append(f"{os.path.basename(path)}:{lineno} {s}")
+    check("无已废弃死配置键", not dead_hits, "; ".join(dead_hits[:4]))
+
+    # 9：pandoc 通道残骸不得回流（该通道已于 2026-09-11 移除）
+    relic = [p for p in ("reference.docx", os.path.join("scripts", "make_reference_docx.py"))
+             if os.path.exists(os.path.join(ROOT, p))]
+    check("无 pandoc 通道残骸", not relic, str(relic))
 
     print()
     print(f"合计：{'全部一致' if not FAILS else f'{len(FAILS)} 项不一致'}")

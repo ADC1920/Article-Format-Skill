@@ -1,5 +1,52 @@
 # article-format 技能变更记录
 
+## 2026-11-22 · v2.2.0：配置可信、工程基线、底模注入（P0-P3 全量重构）
+
+**动因**：用户要求从后端工程师视角全面评估后实施 P0-P3 全部优化项。评估实测发现四类静默失败：改配置不生效、输出路径丢目录、版本号三源不一致、缺文件抛 traceback；工程层无依赖约束、无测试、无 CI。
+
+**P0 配置可信（消除静默失效）**：
+
+| 文件 | 变更 |
+|---|---|
+| `scripts/spec_loader.py` | 新增 `SpecKeyError` 与 `validate_spec_keys()`：加载即校验 yaml 键是否存在于 `DEFAULT_SPEC`，写错键（含 `level_defs` 元素键）直接报错并列出可疑键。实测此前把 `list.formats.level1` 改成 `[BROKEN]%1` 后 `numbering.xml` 逐字节不变、exit 0 |
+| `scripts/spec_loader.py` | `DEFAULT_SPEC` 版本 1.5.4→2.2.0；补全 `heading_by_level`/`line_rule`/`line_pt`/分边页边距/`header_repeat`/`cant_split`/`table.style`/`level_defs` 等此前缺失的兜底键；删除从未被读取的 `heading_style`/`body_list_style`/`use_gongwen` |
+| `article-format.yaml` + 13 个 profile | `list.formats`（死键，无代码消费）统一改为 `list.level_defs`；三个死键从全部 14 个文件移除 |
+| `scripts/md2docx.py` | 输出路径由「只取 basename 强制落 cwd」改为「保留子目录、拒绝逃出基准目录」；`_in_base` → `_resolve_out`，子目录自动创建；删除重复的 `BASE` 定义（112/116 两行完全相同） |
+| `scripts/verify_article_style.py` | 缺文件/非 docx/损坏包三种输入给一句话错误并 exit 1，不再抛 traceback |
+
+**P1 工程基线**：
+
+| 文件 | 变更 |
+|---|---|
+| `pyproject.toml`（新增） | 锁 `python-docx>=1.1,<2`、`PyYAML>=6.0,<7`、`pytest>=8,<9`；此前零依赖约束，换机器装到旧版会静默产出不同结果 |
+| `tests/`（新增，53 项） | `conftest.py` 夹具；`test_spec_loader.py` 规格加载契约；`test_output_path.py` 路径语义；`test_end_to_end.py` 真实样张（31 行表格/七级嵌套/日期行首/代码块/分页符）跑 13 profile；`test_gate_negative.py` 篡改字体字号确认门禁真会 FAIL；`test_base_template.py` 底模注入；`test_required_sections.py` 结构门禁 |
+| `tests/samples/medium-article.md`（新增） | 真实文章形态压力样本，替代回归脚本的 25 行极简样例 |
+| `.github/workflows/ci.yml`（新增） | Windows/Ubuntu/macOS × Python 3.9/3.11/3.12 矩阵，跑一致性检查 + pytest + 13 profile 回归 |
+
+**P2 能力补齐**：
+
+| 文件 | 变更 |
+|---|---|
+| `scripts/md2docx.py` | 新增 `--base-template` / `--keep-until`：把正文灌入用户底模，保留封面/红头/声明页。`render_into_template()` + `_find_keep_anchor()` + `_clear_after_anchor()`；锚点找不到报错退出，不静默追加 |
+| `scripts/verify_article_style.py` | 新增结构要件门禁：按 `profile.required_sections` 做关键词存在性检查，缺项报 `[FAIL] 结构 必备章节齐全` 并列出缺什么 |
+| `profiles/academic-paper.yaml` / `thesis.yaml` / `medical-paper.yaml` | 声明 `required_sections`（摘要/关键词/参考文献；医学另加方法/结果/讨论） |
+| `scripts/query_standards.py` | 新增 `--audit`：置信度分布、含标准号比例、有 source 比例、无标准号且非 high 的不可依据条目清单（实测 490 条中 source 全空、172 条不可依据） |
+| `scripts/run_profile_regression.py` | 样例按 profile 的 `required_sections` 自动补齐必备章节，回归不再因样例缺摘要而红 |
+
+**P3 清理**：
+
+| 文件 | 变更 |
+|---|---|
+| `reference.docx` / `scripts/make_reference_docx.py` | 删除。pandoc 通道已于 2026-09-11 按用户指令移除，这两个文件是其残骸且无任何引用（回滚点有副本） |
+| `scripts/check_skill_consistency.py` | 检查项 6→9：新增版本号单一来源、死配置键回流、pandoc 残骸回流三项 |
+| `SKILL.md` | 版本 2.2.0；执行步骤补输出路径语义与底模注入用法；规格字段表补 `required_sections`、标注 `level_defs` 为唯一有效键；已知限制补 `--audit` 数据与结构门禁边界 |
+
+**行为变化**：①profile 写错键从静默失效变为加载即报错；②`sub/out.docx` 从落到 `./out.docx` 变为落到 `sub/` 下，逃出基准目录报 exit 2；③academic-paper/thesis/medical-paper 缺必备章节时 verify 新增一项 FAIL；④`--base-template` 可承接此前只能人工处理的封面部件。
+
+**验证**：一致性检查 9/9 PASS；13 profile 回归 13/13（合计 1357 项断言）；pytest 53 项全绿；负向门禁篡改宋体→微软雅黑后报 `[FAIL] 六 正文中文字体宋体` exit 1；结构门禁拿无摘要样张跑 academic-paper 报缺 3 项；底模注入保留封面并清除锚点后旧内容；路径三种形态（子目录/逃逸/基线内绝对路径）均按预期。
+
+**回滚点**：`~/.zcode/skill-backups/20261122-163606-article-format-pre-p0p3/`（45 个源文件完整副本）
+
 ## 2026-11-21 · v2.1.0：取消默认排版，改为按文体强制选择
 
 **动因**：用户指令「不需要默认规范，按文章的性质来选择排版，不固定」。v2.0 之前不指定 profile 时静默套用 default，等于给所有文体兜一套规格——判不出文体时出的成品可能整套版式都不对（如学位论文按通用文章排）。

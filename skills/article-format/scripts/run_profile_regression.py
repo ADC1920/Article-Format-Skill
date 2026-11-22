@@ -45,22 +45,44 @@ SAMPLE_MD = """# 样例文档标题
 
 
 def _sample(profile):
-    """按 profile 的编号体系选择标题前缀，避免跳级告警。"""
+    """按 profile 的编号体系选择标题前缀，避免跳级告警。
+
+    若 profile 声明了 required_sections（结构要件门禁），把缺的章节补成
+    一级标题插到正文前——回归只验版式与通道，不该因样例缺「摘要」而红。
+    """
     kind = "numeric"
+    required = []
     try:
         from spec_loader import load_spec
-        kind = str(load_spec(profile=profile)
-                   .get("numbering_scheme", {})
+        spec = load_spec(profile=profile)
+        kind = str(spec.get("numbering_scheme", {})
                    .get("heading_kind", "numeric") or "numeric")
+        required = (spec.get("profile") or {}).get("required_sections") or []
     except Exception:
         pass
+
     if kind == "chinese":
-        return SAMPLE_MD.format(h1="一、", h2="（一）")
-    if kind == "chapter":
-        return SAMPLE_MD.format(h1="第1章", h2="1.1")
-    if kind == "chinese-numeric":
-        return SAMPLE_MD.format(h1="一", h2="一.一")
-    return SAMPLE_MD.format(h1="1", h2="1.1")
+        base = SAMPLE_MD.format(h1="一、", h2="（一）")
+    elif kind == "chapter":
+        base = SAMPLE_MD.format(h1="第1章", h2="1.1")
+    elif kind == "chinese-numeric":
+        base = SAMPLE_MD.format(h1="一", h2="一.一")
+    else:
+        base = SAMPLE_MD.format(h1="1", h2="1.1")
+
+    if not required:
+        return base
+    # 按当前体系的编号风格铺必备章节，标题层级为一级，不制造跳级
+    if kind in ("chinese", "chinese-numeric"):
+        lines = [f"## {cn}、{sec}" for cn, sec in
+                 zip("一二三四五六七八九十", required)]
+    elif kind == "chapter":
+        lines = [f"## 第{i}章 {sec}" for i, sec in enumerate(required, 1)]
+    elif kind == "none":
+        lines = [f"## {sec}" for sec in required]
+    else:
+        lines = [f"## {i} {sec}" for i, sec in enumerate(required, 1)]
+    return "\n\n".join(lines) + "\n\n" + base
 
 
 def run_one(profile, out_dir):

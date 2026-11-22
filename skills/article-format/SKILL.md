@@ -8,12 +8,14 @@ metadata:
   trigger: 文章类文档排版（按文体强制选 profile，无默认）
   language: zh-CN
   scope: 全局
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # 文章排版规范（全局默认 · 多文体）
 
 文章、制度、论文、报告、方案、总结、通知、汇报材料等「文章类」文档默认按本规范排版并输出 docx。会议纪要自 2026-09-09 起同样走本规范（公文体已退役，见末节分工）。
+
+**v2.2（2026-11-22）新增**：①profile 未知键校验（写错键立刻报错，不再静默失效）；②`--base-template` / `--keep-until` 底模注入（红头、封面、声明页可保留）；③profile 可声明 `required_sections` 必备章节，交付前校验结构完整性；④pytest 测试套件 + 三平台 CI；⑤输出路径保留子目录（原先静默丢弃目录成分）。
 
 **v2.1（2026-11-21）起无默认排版**：必须按文章性质选定文体 profile，不指定则脚本报错。v2.0 新增三层能力：①12 种文体 profile（另 formal-doc 通用档），按文体切换整套排版规格；②490 条规范库（14 个领域），可检索各行业文章规范的具体参数与结构要件；③三线表、固定行网格、中文层次序数、分边页边距等此前缺失的版式能力。
 
@@ -68,6 +70,7 @@ python scripts/query_standards.py --domain academic           # 某领域全部
 python scripts/query_standards.py --keyword 三线表            # 关键词
 python scripts/query_standards.py --profile thesis            # 某 profile 关联条目
 python scripts/query_standards.py --domain gov --min-conf high --full
+python scripts/query_standards.py --audit                     # 可溯源性审计（置信度/出处/不可依据清单）
 ```
 
 置信度三档：`high` 已核对官方原文；`medium` 行业通行做法或二次资料；`low` 仅见转述、口径存疑。**low 不作为排版依据。**
@@ -182,9 +185,25 @@ python "<skill_dir>/scripts/md2docx.py" 输入.md 中间.docx [--profile <文体
 python "<skill_dir>/scripts/article_style.py" 中间.docx 最终.docx [--profile <文体>]
 ```
 
-`<skill_dir>` 为本技能目录（技能实体位于 `%USERPROFILE%\.agents\skills\article-format`）。脚本仅依赖 `python-docx` 与 `PyYAML`。
+`<skill_dir>` 为本技能目录（技能实体位于 `%USERPROFILE%\.agents\skills\article-format`）。脚本仅依赖 `python-docx` 与 `PyYAML`，版本区间见 `pyproject.toml`。
 
 `md2docx.py` 内部已调用 `apply_article_style`，单跑第一条即可出成品；第二条用于对已有 docx 重新套样式（如换 profile 重排）。
+
+**输出路径**（v2.2 修正）：相对路径按 `ARTICLE_OUT_DIR` 或当前工作目录解析，**保留子目录**——`sub/out.docx` 会落到 `sub/` 下，父目录自动创建。逃出基准目录的路径（`../x.docx`、基线外的绝对路径）会报错退出（exit 2），不再静默改道。此前版本只取 basename 强制落 cwd，脚本化调用会以为产物在子目录里。
+
+**底模注入**（v2.2 新增）：公文红头、学位论文封面与原创性声明页、单位发文机关标志这类部件脚本无法凭空生成，用底模承接：
+
+```bash
+python "<skill_dir>/scripts/md2docx.py" 正文.md out.docx --profile thesis \
+  --base-template 学校模板.docx \
+  --keep-until 目录
+```
+
+- `--base-template`：以该 docx 为底模，正文接在其后，封面等前置部件原样保留。
+- `--keep-until 文字`：删掉底模中该文字所在段落之后的所有内容，正文从该处续写。按段落文本**包含匹配**，找不到即报错（exit 2），不会静默追加。
+- 不传 `--keep-until` 时正文追加到模板末尾。
+- 底模产物的正文仍走本技能版式并需通过 `verify_article_style.py`；封面部件使用模板自带样式，不受影响。
+- 底模须为有效 `.docx`（`.doc`/`.dot` 先另存为 docx）。
 
 ### 4. 交付前抽查
 
@@ -192,16 +211,21 @@ python "<skill_dir>/scripts/article_style.py" 中间.docx 最终.docx [--profile
 python "<skill_dir>/scripts/verify_article_style.py" 最终.docx [--profile <文体>]
 ```
 
-核验项随 profile 的规格变化（约 100 项，标点/字体/字号/段距/纸型/页边距/编号体系/页码/三线表/表格跨页/OOXML schema 顺序）。退出码 0 = 全部通过。
+核验项随 profile 的规格变化（约 100 项，标点/字体/字号/段距/纸型/页边距/编号体系/页码/三线表/表格跨页/OOXML schema 顺序）。exit 0 = 全部通过。
+
+**结构要件校验**（v2.2 新增）：profile 可用 `profile.required_sections` 声明必备章节关键词，verify 按标题与正文文本做存在性检查。已在 academic-paper（摘要/关键词/参考文献）、thesis（同）、medical-paper（摘要/关键词/方法/结果/讨论/参考文献）声明。缺项报 `[FAIL] 结构 必备章节齐全` 并列出缺什么；未声明的 profile 该项直接通过。**只判有无，不判质量与顺序。**
 
 也可直接跑全部 profile 的端到端回归：
 
 ```bash
 python "<skill_dir>/scripts/run_profile_regression.py"          # 13 个 profile 全跑一遍
 python "<skill_dir>/scripts/run_profile_regression.py" --keep   # 保留产物供目检
+python -m pytest tests/ -q                                      # 单元 + 真实样张端到端 + 负向门禁
 ```
 
-人工核对要点：标题黑体、正文宋体小四、正文标号顶格且为自动编号、页脚页码、标题编号连续。属公文/学位论文等有封面与声明页的文体，封面、页眉章名、印章、成文日期位置仍需按单位模板人工处理——脚本不代劳。
+`tests/` 与 `run_profile_regression.py` 的分工：后者用 25 行极简样例验「同一输入在 13 套规格下自洽」；前者用 `tests/samples/medium-article.md`（31 行表格、七级嵌套列表、日期行首、代码块、分页符）验真实文章形态，并含**负向门禁测试**——篡改字体/字号后确认 verify 真的报 FAIL，防止门禁空转。
+
+人工核对要点：标题黑体、正文宋体小四、正文标号顶格且为自动编号、页脚页码、标题编号连续。属公文/学位论文等有封面与声明页的文体，封面、页眉章名、印章、成文日期位置仍需按单位模板人工处理——脚本不代劳（可用 `--base-template` 承接）。
 
 ## 规格配置（唯一权威源）
 
@@ -227,13 +251,17 @@ profile 文件只写与该默认值的差异，未写字段自动继承。可选
 | `spacing.line_rule` / `line_pt` | 固定行距（行网格）替代倍数行距 | `exact` / `28.9`（公文每页 22 行） |
 | `page.margin_top_cm` 等四项 | 分边页边距覆盖 `margin_cm` | `3.7` / `3.5` / `2.8` / `2.6` |
 | `table.style` | 表格样式 | `three-line`（三线表） |
-| `list.level_defs` | 正文列举七级编号定义 | `[{fmt: chineseCounting, text: "%1、"}]` |
+| `list.level_defs` | 正文列举七级编号定义（**唯一有效键**） | `[{fmt: chineseCounting, text: "%1、"}]` |
 | `numbering_scheme.heading_kind` | 章节编号体系 | `numeric`/`chinese`/`chapter`/`chinese-numeric`/`none` |
 | `footer.number_format` | 页码格式 | `dash`（- N -）/ `plain`（N）/ `none` |
+| `profile.required_sections` | 必备章节关键词（verify 做存在性检查） | `[摘要, 关键词, 参考文献]` |
+
+**未知键会被拦截**（v2.2）：profile 里写错键（如把 `list.level_defs` 写成 `list.formats`）在加载时直接抛错并列出可疑键，不再被静默吞掉。已废弃的 `heading_style` / `body_list_style` / `use_gongwen` / `list.formats` 已从全部 13 个 profile 与基线移除，回流会被 `check_skill_consistency.py` 拦下。
 
 - 配置文件缺失、字段缺失或 PyYAML 未安装 → 自动回落到脚本内置默认值（与上表一致），脚本照常运行。
 - 临时套用别的规格：`ARTICLE_FORMAT_SPEC=/path/to/other.yaml python scripts/article_style.py in.docx out.docx`。
 - 指定文体：`ARTICLE_FORMAT_PROFILE=thesis` 环境变量，或 `--profile thesis` 参数。
+- **版本号单一来源**：`article-format.yaml` 的 `version` 与 `spec_loader.DEFAULT_SPEC["version"]` 必须一致，由 `check_skill_consistency.py` 校验；`pyproject.toml` 同步。
 
 ## 排版规格（formal-doc 参考值）
 
@@ -277,8 +305,9 @@ profile 文件只写与该默认值的差异，未写字段自动继承。可选
 | 通道 | 入口 | 用途 |
 |---|---|---|
 | Python（精确） | `scripts/md2docx.py` → `scripts/article_style.py` | 精确排版（Word 自动编号、标号顶格、Heading 导航、三线表） |
-| 规范查询（只读） | `scripts/query_standards.py` | 查各行业文章规范的具体参数 |
-| 回归（只读） | `scripts/run_profile_regression.py` | 13 个 profile 端到端核验 |
+| 底模注入 | `scripts/md2docx.py --base-template` | 正文灌入单位模板，保留封面/红头/声明页 |
+| 规范查询（只读） | `scripts/query_standards.py` | 查各行业文章规范的具体参数；`--audit` 审计可溯源性 |
+| 回归（只读） | `scripts/run_profile_regression.py` + `pytest tests/` | 13 个 profile 端到端核验 + 真实样张 + 负向门禁 |
 
 通道从 `spec_loader.load_spec()` 读 yaml；改规格只改 yaml，不改代码。（pandoc 通用通道已于 2026-09-11 按用户指令移除。）
 
@@ -291,6 +320,8 @@ profile 文件只写与该默认值的差异，未写字段自动继承。可选
 
 ## 已知限制
 
-- 公文/法律/学位论文的**封面、发文机关标志、红色分隔线、印章、成文日期位置、原创性声明页、页眉章名、罗马数字前置页码**不由脚本生成，需按单位模板人工处理。脚本只保证正文版式与层次序数合规。
+- 公文/法律/学位论文的**封面、发文机关标志、红色分隔线、印章、成文日期位置、原创性声明页、页眉章名、罗马数字前置页码**不由脚本生成，需按单位模板人工处理；v2.2 起可用 `--base-template` 把正文灌进含这些部件的模板，但模板本身仍要人工准备。脚本只保证正文版式与层次序数合规。
 - `social-media` profile 的平台限流词、`press-release` 的禁用词与慎用词、法律与财经文书的实体条款合规性，脚本不做词表扫描，需人工对照规范库核校。
-- 规范库中 `low` 置信度条目（10 条）来自二手转述、口径存疑，不作为排版依据。
+- 规范库中 `low` 置信度条目（10 条）来自二手转述、口径存疑，不作为排版依据。用 `python scripts/query_standards.py --audit` 可查看置信度分布与不可依据条目清单：当前 490 条中 `source` 字段全空、172 条无标准号且非 high 置信度，这些只能当写作提示，不能当排版依据。
+- `required_sections` 只做关键词存在性匹配，不判章节顺序、层级正确性与内容质量；同名词出现在正文任意位置也会算命中。
+- 底模注入的 `--keep-until` 用的是「段落文本包含匹配」，模板里若有多个段落含同一文字，取第一个匹配项。

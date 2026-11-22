@@ -108,10 +108,7 @@ navigation:
 
 numbering_scheme:
   heading_levels: 4
-  heading_style: numeric
   heading_kind: numeric    # 教案板块常写「一、教学目标」或「1. 教学目标」
   heading_auto_number: true
   heading_gap_check: warn
   space_after_number: true
-  body_list_style: "1./1)/(1)/①/a./(a)/i."
-  use_gongwen: false

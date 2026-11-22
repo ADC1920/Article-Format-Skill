@@ -20,6 +20,9 @@ profile:
   standard: GB/T 7713.1-2025
   source: 学位论文编写规则（2025 版）+ 六校研究生院格式要求公共交集
   note: 封面、原创性声明、页眉章名、罗马数字前置页码需人工按本校模板处理
+  # 结构要件：存在性检查（见 verify_article_style 结构门禁）。致谢与附录
+  # 各校要求不一，未被列为必备。
+  required_sections: [摘要, 关键词, 参考文献]
 
 fonts:
   heading: 黑体
@@ -114,10 +117,7 @@ navigation:
 
 numbering_scheme:
   heading_levels: 4        # GB/T 7713.2：章节编号一般不超过 4 级
-  heading_style: chapter
   heading_kind: chapter    # 第1章 / 1.1 / 1.1.1
   heading_auto_number: true
   heading_gap_check: error
   space_after_number: true
-  body_list_style: "1./1)/(1)/①/a./(a)/i."
-  use_gongwen: false

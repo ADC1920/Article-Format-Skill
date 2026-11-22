@@ -114,10 +114,7 @@ navigation:
 
 numbering_scheme:
   heading_levels: 3
-  heading_style: numeric
   heading_kind: none       # 推文小标题不加编号
   heading_auto_number: false
   heading_gap_check: off
   space_after_number: true
-  body_list_style: "1./1)/(1)/①/a./(a)/i."
-  use_gongwen: false

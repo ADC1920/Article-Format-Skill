@@ -34,7 +34,7 @@
 #   被页边界切成两半）落 article_style.py，两开关均可 yaml 关闭。
 # ---------------------------------------------------------------
 
-version: "2.1.0"
+version: "2.2.0"
 
 # 字体：中文与西文分设（西文含数字与标点）
 fonts:
@@ -129,14 +129,16 @@ list:
   first_line_indent: false     # 无首行缩进
   bold: false                  # 无加粗等特别标注
   # 七级形式依层级：1. / 1) / (1) / ① / a. / (a) / i.
-  formats:
-    level1: "%1."                # 阿拉伯数字加点（decimal）
-    level2: "%1)"                # 阿拉伯数字加右括号（decimal）
-    level3: "(%1)"               # 圆括号包数字（decimal）
-    level4: "%1"                 # 带圈数字 ①②③（decimalEnclosedCircle）
-    level5: "%1."                # 小写字母加点 a. b. c.（lowerLetter）
-    level6: "(%1)"               # 圆括号包字母 (a) (b)（lowerLetter）
-    level7: "%1."                # 小写罗马数字 i. ii. iii.（lowerRoman）
+  # 键名必须是 level_defs（唯一被 article_style._list_level_defs 读取的键）；
+  # 旧键 formats 不会被任何代码读取，已于 v2.2 移除。
+  level_defs:
+    - {fmt: decimal, text: "%1."}                    # 1.
+    - {fmt: decimal, text: "%1)"}                    # 1)
+    - {fmt: decimal, text: "(%1)"}                   # (1)
+    - {fmt: decimalEnclosedCircle, text: "%1"}       # ①
+    - {fmt: lowerLetter, text: "%1."}                # a.
+    - {fmt: lowerLetter, text: "(%1)"}               # (a)
+    - {fmt: lowerRoman, text: "%1."}                 # i.
 
 # 导航目录（规则十一）
 navigation:
@@ -147,7 +149,6 @@ navigation:
 # 编号体系（规则十二）
 numbering_scheme:
   heading_levels: 7            # 章节标题最大层级（md # 前缀与数字式段数上限）
-  heading_style: numeric       # 章节标题数字式七层：1 / 1.1 / … / 1.1.1.1.1.1.1
   heading_kind: numeric        # 编号体系：numeric / chinese / chapter / chinese-numeric / none
                                #   numeric=1/1.1/1.1.1（本文件默认）
                                #   chinese=一、/（一）/1./（1）（公文体）
@@ -160,6 +161,4 @@ numbering_scheme:
                                # warn=stderr 告警继续 / off=不校验
                                # （跳级定义：下一标题层级 > 上一标题层级 + 1）
   space_after_number: true     # 序号与题名间空一格（半角空格）
-  body_list_style: "1./1)/(1)/①/a./(a)/i."   # 正文内列举形式（七级）
-  use_gongwen: false           # 不使用公文式「一、」「（一）」编号
 

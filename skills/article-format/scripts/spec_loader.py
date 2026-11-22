@@ -33,11 +33,14 @@ ENV_SPEC_PATH = "ARTICLE_FORMAT_SPEC"
 
 # 内置默认值：必须与 article-format.yaml 保持一致（配置文件缺失时的兜底）
 DEFAULT_SPEC = {
-    "version": "1.5.4",
+    "version": "2.2.0",
     "fonts": {
         "heading": "黑体",
         "body": "宋体",
         "western": "Times New Roman",
+        # 按标题层级分别指定中文字体（公文体：黑体/楷体/仿宋）；
+        # None = 未设置，各级统一用 fonts.heading
+        "heading_by_level": None,
     },
     "sizes_pt": {
         "doc_title": 18,
@@ -59,6 +62,9 @@ DEFAULT_SPEC = {
         "h4_before_after_pt": 6,
         "h6_before_after_pt": 3,
         "body_before_after_lines": 0.1,
+        # 固定行距（行网格）：line_rule=exact 时用 line_pt，覆盖倍数行距
+        "line_rule": "auto",
+        "line_pt": None,
     },
     # 页面（纸型与页边距，v1.5.1 新增）
     "page": {
@@ -68,8 +74,10 @@ DEFAULT_SPEC = {
         "margin_cm": 2.54,
         # 分边页边距（可选）：设置后覆盖 margin_cm 的四边同距行为。
         # 公文 GB/T 9704 用 上 3.7 / 下 3.5 / 左 2.8 / 右 2.6。
-        # "margin_top_cm": None, "margin_bottom_cm": None,
-        # "margin_left_cm": None, "margin_right_cm": None,
+        "margin_top_cm": None,
+        "margin_bottom_cm": None,
+        "margin_left_cm": None,
+        "margin_right_cm": None,
     },
     # 对齐（取值：center / justify / left / right）
     "alignment": {
@@ -105,6 +113,10 @@ DEFAULT_SPEC = {
         "shading": False,
         "first_line_indent": False,
         "line_spacing": 1.3,
+        "header_repeat": True,
+        "cant_split": True,
+        # 表格样式：three-line=三线表（学术/学位/医学论文）；None/空=常规网格
+        "style": None,
     },
     # 页脚页码（规范十）
     "footer": {
@@ -122,15 +134,9 @@ DEFAULT_SPEC = {
         "space_after_number": True,
         "first_line_indent": False,
         "bold": False,
-        "formats": {
-            "level1": "%1.",                 # 1.（decimal）
-            "level2": "%1)",                 # 1)（decimal）
-            "level3": "(%1)",                # (1)（decimal）
-            "level4": "%1",                  # ①（decimalEnclosedCircle）
-            "level5": "%1.",                 # a.（lowerLetter）
-            "level6": "(%1)",                # (a)（lowerLetter）
-            "level7": "%1.",                 # i.（lowerRoman）
-        },
+        # 七级编号定义（profile 整体替换）；None = 用代码内置七级
+        # 形态：[{fmt: decimal, text: "%1."}, ...]，见 article_style._list_level_defs
+        "level_defs": None,
     },
     # 导航目录（规范十一）
     "navigation": {
@@ -141,15 +147,15 @@ DEFAULT_SPEC = {
     # 编号体系（规范十二）
     "numbering_scheme": {
         "heading_levels": 7,
-        "heading_style": "numeric",
         "heading_kind": "numeric",     # numeric / chinese / chapter / chinese-numeric / none
         "heading_auto_number": True,   # 标题编号 Word 自动多级编号（增删自动重排）
         "heading_gap_check": "error",  # 标题层级连续性校验：error / warn / off
         "space_after_number": True,
-        "body_list_style": "1./1)/(1)/①/a./(a)/i.",
-        "use_gongwen": False,
     },
 }
+
+# profile 专用元数据键（只作说明与溯源，不影响排版行为）
+PROFILE_META_KEYS = {"name", "title", "standard", "source", "note", "required_sections"}
 
 
 def _skill_root():
@@ -179,6 +185,15 @@ class ProfileNotSpecified(Exception):
 
 class ProfileNotFound(Exception):
     """指定了 profile 但找不到对应 yaml（文体名写错）时抛出。"""
+
+
+class SpecKeyError(Exception):
+    """profile yaml 里出现基线中不存在的键（拼错或已废弃）时抛出。
+
+    此前 yaml 写错键（如把 list.level_defs 写成 list.formats）会被 _deep_merge
+    静默吞掉，改配置不生效且不报错——实测改 formats.level1 后 numbering.xml
+    逐字节不变、exit 0。这类静默失效排查成本极高，进入加载即拦截。
+    """
 
 
 def _profile_path(profile):
@@ -239,6 +254,70 @@ def _deep_merge(base, override):
     return result
 
 
+def _key_paths(node, prefix=""):
+    """收集一份配置的键路径集合（叶子与中间节点都算）。
+
+    heading_by_level 的值是 {1: 黑体} 这类动态键，按「前缀整体放行」处理，
+    不逐条比对以免把合法配置判成未知键。
+    """
+    paths = set()
+    if isinstance(node, dict):
+        for key, value in node.items():
+            path = f"{prefix}.{key}" if prefix else str(key)
+            paths.add(path)
+            if path in _DYNAMIC_KEY_PATHS:
+                continue
+            paths |= _key_paths(value, path)
+    elif isinstance(node, list):
+        allowed = _LIST_OF_DICT_PATHS.get(prefix)
+        for item in node:
+            if not isinstance(item, dict):
+                continue
+            if allowed is not None:
+                # 白名单模式：只放行声明的元素键，其余记为未知
+                paths |= {f"{prefix}.{k}" for k in item if k not in allowed}
+            else:
+                # 普通列表内字典：按元素键递归（不按下标展开）
+                paths |= _key_paths(item, prefix)
+    return paths
+
+
+# 值本身是「动态键→值」映射的路径：不展开其内部键
+_DYNAMIC_KEY_PATHS = {"fonts.heading_by_level"}
+# 值本身是「列表内字典」的路径：元素键按白名单整体放行（不按下标展开）
+_LIST_OF_DICT_PATHS = {
+    "list.level_defs": {"fmt", "text"},
+}
+
+
+def validate_spec_keys(data, origin="profile"):
+    """校验 profile yaml 的键都能在 DEFAULT_SPEC 中找到对应位置。
+
+    存在未知键即抛 SpecKeyError 并列出全部可疑键——拼错的键会被 _deep_merge
+    静默吞掉，改配置不生效且不报错，是排查成本最高的一类问题。
+    profile 元数据键（name/title/standard/source/note/required_sections）放行。
+    """
+    known = _key_paths(DEFAULT_SPEC) | {f"profile.{k}" for k in PROFILE_META_KEYS}
+    known.add("profile")
+    known.add("version")
+    # version 的父层与 profile 节本身允许
+    unknown = []
+    for path in sorted(_key_paths(data) - known):
+        # 跳过动态键的内部路径（heading_by_level 下的 1/2/3/4）
+        if any(path.startswith(d + ".") for d in _DYNAMIC_KEY_PATHS):
+            continue
+        # profile.xxx 下的说明项已整体放行，这里只拦非元数据
+        unknown.append(path)
+    if unknown:
+        shown = "\n  ".join(unknown)
+        raise SpecKeyError(
+            f"{origin} 含未知配置键（这些键不会被任何代码读取，改了也不生效）：\n"
+            f"  {shown}\n"
+            "对照 scripts/spec_loader.py 的 DEFAULT_SPEC 检查拼写；"
+            "可选键见 SKILL.md「规格配置」节。")
+    return data
+
+
 def load_spec(verbose=False, profile=None, require=True):
     """加载指定文体的规格配置。
 
@@ -278,6 +357,10 @@ def load_spec(verbose=False, profile=None, require=True):
         if verbose:
             print(f"[警告] 读取 {path} 失败（{exc}），使用内置默认规格")
         return dict(DEFAULT_SPEC)
+
+    # 未知键拦截：拼错或已废弃的键会被 _deep_merge 静默吞掉，改配置不生效
+    # 且不报错。这里在合并前校验，让「改了没反应」立刻变成明确报错。
+    validate_spec_keys(data, origin=os.path.basename(path))
 
     return _deep_merge(DEFAULT_SPEC, data)
 

@@ -20,6 +20,8 @@ profile:
   standard: ICMJE Recommendations
   source: ICMJE、CONSORT 2025、PRISMA 2020、STROBE、CARE、STARD、ARRIVE、SQUIRE、Vancouver 引文
   note: 报告清单（checklist）逐条核对需人工完成；本 profile 只落版式与结构骨架
+  # 结构要件：IMRaD 四段 + 摘要关键词 + 参考文献（Vancouver 顺序编码）。
+  required_sections: [摘要, 关键词, 方法, 结果, 讨论, 参考文献]
 
 fonts:
   heading: 黑体
@@ -110,10 +112,7 @@ navigation:
 
 numbering_scheme:
   heading_levels: 3        # IMRaD 结构层次不深，正文内不再细分编号
-  heading_style: numeric
   heading_kind: none       # 医学论文一级标题写「方法」「结果」，不加数字编号
   heading_auto_number: false
   heading_gap_check: off
   space_after_number: true
-  body_list_style: "1./1)/(1)/①/a./(a)/i."
-  use_gongwen: false

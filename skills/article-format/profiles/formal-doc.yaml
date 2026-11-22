@@ -85,14 +85,14 @@ list:
   space_after_number: true
   first_line_indent: false
   bold: false
-  formats:
-    level1: '%1.'
-    level2: '%1)'
-    level3: (%1)
-    level4: '%1'
-    level5: '%1.'
-    level6: (%1)
-    level7: '%1.'
+  level_defs:
+    - {fmt: decimal, text: '%1.'}
+    - {fmt: decimal, text: '%1)'}
+    - {fmt: decimal, text: '(%1)'}
+    - {fmt: decimalEnclosedCircle, text: '%1'}
+    - {fmt: lowerLetter, text: '%1.'}
+    - {fmt: lowerLetter, text: '(%1)'}
+    - {fmt: lowerRoman, text: '%1.'}
 navigation:
   heading_styles: true
   outline_levels:
@@ -106,10 +106,7 @@ navigation:
   title_in_toc: false
 numbering_scheme:
   heading_levels: 7
-  heading_style: numeric
   heading_kind: numeric
   heading_auto_number: true
   heading_gap_check: error
   space_after_number: true
-  body_list_style: 1./1)/(1)/①/a./(a)/i.
-  use_gongwen: false

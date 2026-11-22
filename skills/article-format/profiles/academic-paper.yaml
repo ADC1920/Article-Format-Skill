@@ -18,6 +18,9 @@ profile:
   standard: GB/T 7713.2-2022
   source: 学术论文编写规则 + GB/T 7714 + ICMJE/APA 7 通用版式
   note: 摘要与关键词、参考文献著录、图表编号需按投稿期刊的具体须知调整
+  # 结构要件：verify 按标题/正文文本包含匹配做存在性检查（不判质量与顺序）。
+  # 实测缺任一项会 FAIL；期刊另有特殊栏目时可在 SPEC 覆盖或增补。
+  required_sections: [摘要, 关键词, 参考文献]
 
 fonts:
   heading: 黑体
@@ -112,10 +115,7 @@ navigation:
 
 numbering_scheme:
   heading_levels: 4        # GB/T 7713.2：章节编号一般不超过 4 级
-  heading_style: numeric
   heading_kind: numeric    # 1 / 1.1 / 1.1.1
   heading_auto_number: true
   heading_gap_check: error
   space_after_number: true
-  body_list_style: "1./1)/(1)/①/a./(a)/i."
-  use_gongwen: false

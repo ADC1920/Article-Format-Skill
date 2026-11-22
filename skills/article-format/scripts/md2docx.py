@@ -29,8 +29,8 @@
 故不进入导航目录（规范：主标题不套用、不进入目录树）。
 
 安全性：Markdown 内容一律从标准输入（stdin）读取，不读取任何命令行指定的
-文件；输出文件名只取 basename（文件名），固化到当前工作目录下，路径不含可
-从中注入的目录成分，杜绝路径穿越。
+文件；输出路径相对基准目录（ARTICLE_OUT_DIR 或当前工作目录）解析，保留子目录
+但拒绝 `..` 与逃出基线的绝对路径，杜绝路径穿越。
 
 用法（内容走 stdin）：
     python md2docx.py out.docx --title "主标题" < 文章.md
@@ -111,14 +111,43 @@ def _table_spec():
 # 这样脚本可被复制到任意项目使用，不再锁死到自身所在目录。
 BASE = os.environ.get("ARTICLE_OUT_DIR") or os.getcwd()
 
-# 输出基准目录：优先取环境变量 ARTICLE_OUT_DIR，否则取当前工作目录。
-# 这样脚本可被复制到任意项目使用，不再锁死到自身所在目录。
-BASE = os.environ.get("ARTICLE_OUT_DIR") or os.getcwd()
 
+def _resolve_out(filename):
+    """把输出文件名解析为绝对路径，保留子目录、拒绝路径穿越。
 
-def _in_base(filename):
-    """把文件名固化到 BASE 下：只用 basename，清除目录成分，杜绝穿越。"""
-    return os.path.join(BASE, os.path.basename(filename))
+    历史行为是只取 basename 强制落 cwd（v2.1 及之前），目的是杜绝路径穿越，
+    但副作用是 `sub/out.docx` 被静默改到 `./out.docx`，脚本化调用会以为产物
+    在子目录里、实际找不到。现在改为：子目录照常尊重，只拦截逃出 BASE 的路径
+    （`..` 或绝对路径）。这样既保住防穿越，也不再有静默改道。
+    """
+    raw = str(filename)
+    if os.path.isabs(raw):
+        # 绝对路径：仅允许落在 BASE 之内
+        target = os.path.abspath(raw)
+        base_abs = os.path.abspath(BASE)
+        try:
+            inside = os.path.commonpath([target, base_abs]) == base_abs
+        except ValueError:            # Windows 跨盘符
+            inside = False
+        if not inside:
+            raise ValueError(
+                f"输出路径必须位于输出目录内（BASE={base_abs}）：{target}\n"
+                "如需写到别处，请改设 ARTICLE_OUT_DIR 或先 cd 到目标目录。")
+        os.makedirs(os.path.dirname(target) or base_abs, exist_ok=True)
+        return target
+    # 相对路径：相对 BASE 解析后仍需留在 BASE 内（拦截 ../）
+    target = os.path.abspath(os.path.join(BASE, raw))
+    base_abs = os.path.abspath(BASE)
+    try:
+        inside = os.path.commonpath([target, base_abs]) == base_abs
+    except ValueError:
+        inside = False
+    if not inside:
+        raise ValueError(
+            f"输出路径逃出输出目录（BASE={base_abs}）：{raw}\n"
+            "可用 ./产物.docx 或 子目录/产物.docx。")
+    os.makedirs(os.path.dirname(target) or base_abs, exist_ok=True)
+    return target
 
 
 # --------------------------------------------------------------------------- #
@@ -625,6 +654,75 @@ def render_to_docx(doc, parsed, use_title=None):
     return doc
 
 
+def _find_keep_anchor(doc, marker):
+    """在底模里找 `--keep-until` 指定的锚点段落，返回其索引；找不到返回 None。
+
+    匹配规则：段落文本去空白后包含 marker（大小写敏感）。这是刻意从简的
+    约定——底模作者在封面/声明页末尾留一行标记文字，脚本据此切分。
+    """
+    target = str(marker).strip()
+    if not target:
+        return None
+    for idx, par in enumerate(doc.paragraphs):
+        if target in (par.text or ""):
+            return idx
+    return None
+
+
+def _clear_after_anchor(doc, anchor_idx):
+    """删除锚点段落之后的所有 body 内容（含表格），保留锚点及其以上部分。"""
+    body = doc.element.body
+    anchor_par = doc.paragraphs[anchor_idx]._p
+    # 收集锚点之后、sectPr 之前的全部子元素
+    seen_anchor = False
+    to_remove = []
+    for child in list(body):
+        if child is anchor_par:
+            seen_anchor = True
+            continue
+        if not seen_anchor:
+            continue
+        if child.tag == qn("w:sectPr"):
+            break
+        to_remove.append(child)
+    for el in to_remove:
+        body.remove(el)
+    return len(to_remove)
+
+
+def render_into_template(template_path, parsed, use_title=None, keep_until=None):
+    """把文章灌入用户提供的底模 docx，保留封面/声明页等前置部件。
+
+    这是 `--base-template` 的实现。解决的问题：公文红头、学位论文封面与
+    原创性声明页、单位发文机关标志这类部件脚本无法凭空生成，只能由用户
+    提供含这些部件的模板，脚本负责把正文接在后面。
+
+    keep_until：模板里的一行标记文字。脚本删掉该行之后的所有内容，正文从
+    该处续写；不传则内容追加到模板末尾。标记行本身保留（通常它就是封面
+    与正文之间的分界，如「摘要」前的空行或「目录」标题）。
+
+    样式处理：底模自带样式体系（学校/单位模板往往有自己的 Normal、Heading），
+    直接 apply_article_style 会覆盖它们。这里先套用本技能样式以保证版式合规，
+    底模的封面部件因使用独立样式或直接格式而不受影响。
+    """
+    doc = Document(template_path)
+    if keep_until:
+        anchor = _find_keep_anchor(doc, keep_until)
+        if anchor is None:
+            raise ValueError(
+                f"底模中找不到锚点文字「{keep_until}」。\n"
+                "请确认该文字确实存在于模板的某个段落里（脚本按段落文本包含匹配）。")
+        removed = _clear_after_anchor(doc, anchor)
+        if removed == 0:
+            sys.stderr.write(
+                f"[md2docx] 提示：锚点「{keep_until}」之后本就没有内容，"
+                "正文将直接接在其后。\n")
+    render_to_docx(doc, parsed, use_title=use_title)
+    apply_article_style(doc)
+    return doc
+
+
+
 def main(argv=None):
     import argparse
     parser = argparse.ArgumentParser(description="Markdown → 排版规范 docx")
@@ -639,6 +737,12 @@ def main(argv=None):
                              "也可用环境变量 ARTICLE_FORMAT_PROFILE")
     parser.add_argument("--list-profiles", action="store_true",
                         help="列出全部可用 profile 后退出")
+    parser.add_argument("--base-template", default=None, metavar="模板.docx",
+                        help="用指定 docx 作底模：保留其封面/声明页等前置部件，"
+                             "正文接在其后（解决红头、印章、单位封面脚本无法生成的问题）")
+    parser.add_argument("--keep-until", default=None, metavar="文字",
+                        help="配合 --base-template：删掉底模中该文字所在段落之后的"
+                             "全部内容，正文从该处续写。按段落文本包含匹配")
     ns = parser.parse_args(argv if argv is not None else sys.argv[1:])
 
     if ns.list_profiles:
@@ -669,16 +773,23 @@ def main(argv=None):
             return 2
 
     if ns.second is not None:
-        # 文件参数模式：in.md out.docx（读文件内容，输出仍固化到工作目录）
+        # 文件参数模式：in.md out.docx（输出相对 BASE，保留子目录）
         with open(ns.first, encoding="utf-8") as fh:
             md_text = fh.read()
-        out_path = _in_base(ns.second)
+        try:
+            out_path = _resolve_out(ns.second)
+        except ValueError as exc:
+            sys.stderr.write(f"错误：{exc}\n")
+            return 2
     else:
         # stdin 模式：out.docx < 文章.md（内容走标准输入，无可注入路径）
         md_text = sys.stdin.read()
-        out_path = _in_base(ns.first)
+        try:
+            out_path = _resolve_out(ns.first)
+        except ValueError as exc:
+            sys.stderr.write(f"错误：{exc}\n")
+            return 2
 
-    doc = Document()
     parsed = parse_markdown(md_text)
     # 标题层级连续性校验（heading_gap_check）：跳级在转换阶段显式拦截，
     # 不再「写错序列照常套样式」静默产出。
@@ -698,8 +809,30 @@ def main(argv=None):
                 "转换中止：修正上述标题层级，或在 article-format.yaml 将 "
                 "numbering_scheme.heading_gap_check 改为 warn/off。\n")
             return 1
-    render_to_docx(doc, parsed, use_title=ns.title)
-    apply_article_style(doc)
+    if ns.base_template:
+        if not os.path.exists(ns.base_template):
+            sys.stderr.write(f"错误：底模不存在：{ns.base_template}\n")
+            return 2
+        try:
+            doc = render_into_template(ns.base_template, parsed,
+                                      use_title=ns.title,
+                                      keep_until=ns.keep_until)
+        except ValueError as exc:
+            sys.stderr.write(f"错误：{exc}\n")
+            return 2
+        except Exception as exc:
+            sys.stderr.write(
+                f"错误：无法用底模生成：{ns.base_template}\n"
+                f"  原因：{type(exc).__name__}: {exc}\n"
+                "  底模须是有效的 .docx（.doc/.dot 需先另存为 docx）。\n")
+            return 2
+    else:
+        if ns.keep_until:
+            sys.stderr.write(
+                "提示：--keep-until 仅在配合 --base-template 时生效，已忽略。\n")
+        doc = Document()
+        render_to_docx(doc, parsed, use_title=ns.title)
+        apply_article_style(doc)
     doc.save(out_path)
     print(f"已生成 {out_path}（套用排版规范）")
     return 0

@@ -113,10 +113,7 @@ navigation:
 
 numbering_scheme:
   heading_levels: 3        # 新闻稿小标题一般不超过 3 级
-  heading_style: numeric
   heading_kind: numeric
   heading_auto_number: false   # 新闻稿小标题通常不加编号，靠加粗小标题区分
   heading_gap_check: off
   space_after_number: true
-  body_list_style: "1./1)/(1)/①/a./(a)/i."
-  use_gongwen: false

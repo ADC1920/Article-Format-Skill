@@ -65,6 +65,57 @@ def render(row, full=False):
     return line
 
 
+def audit(rows):
+    """可溯源性审计：按置信度与来源信息统计规范库质量。
+
+    规范库的核心价值是「可查证」，不是条数多。source 字段全空、名称里
+    没有标准号、又是 medium/low 置信度的条目，实际上无法回溯依据，
+    只能当写作提示而不能当排版依据。这里把这三类暴露出来。
+    """
+    import re
+    std_re = re.compile(r"(GB/T|GB|ISO|ISO/IEC|IEEE|IEC|WS/T|YY/T|JGJ|CIP|AP|Reuters|BBC)\s*[\d\-\.]*")
+    n = len(rows)
+    by_conf = {}
+    no_source = 0
+    no_standard = 0
+    weak = []           # 无标准号且非 high 置信度
+    no_profile = 0
+    for row in rows:
+        conf = row.get("confidence") or ""
+        by_conf[conf] = by_conf.get(conf, 0) + 1
+        has_source = bool((row.get("source") or "").strip())
+        has_std = bool(std_re.search(row.get("name", "")))
+        if not has_source:
+            no_source += 1
+        if not has_std:
+            no_standard += 1
+        if not has_std and conf != "high":
+            weak.append(row)
+        if not row.get("profile"):
+            no_profile += 1
+
+    print(f"规范库共 {n} 条\n")
+    print("置信度分布：")
+    for key in ("high", "medium", "low", ""):
+        if key in by_conf:
+            label = key or "未标注"
+            print(f"  {label:<6} {by_conf[key]:>4} 条  ({by_conf[key] * 100 // max(n, 1)}%)")
+    print()
+    print("可溯源性：")
+    print(f"  含标准号（名称中）      {n - no_standard:>4} / {n}")
+    print(f"  有 source 出处          {n - no_source:>4} / {n}")
+    print(f"  已关联 profile          {n - no_profile:>4} / {n}")
+    print(f"  无标准号且非 high 置信  {len(weak):>4} / {n}   ← 不可作为排版依据")
+    if weak:
+        print("\n无标准号且非 high 的条目（前 15 条）：")
+        for row in weak[:15]:
+            print(f"  [{row.get('id', '')}] {row.get('name', '')[:52]}"
+                  f"（{row.get('confidence', '')}）")
+        if len(weak) > 15:
+            print(f"  …… 另有 {len(weak) - 15} 条")
+    return 0
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="检索文章规范库")
     ap.add_argument("--list-domains", action="store_true", help="列出领域与条目数")
@@ -77,11 +128,16 @@ def main(argv=None):
     ap.add_argument("--limit", type=int, default=0, help="最多输出条数（0=不限）")
     ap.add_argument("--json", action="store_true", help="输出 JSON 行原文")
     ap.add_argument("--full", action="store_true", help="输出完整规格全文")
+    ap.add_argument("--audit", action="store_true",
+                    help="可溯源性审计：置信度分布、有无标准号/出处、不可依据的条目")
     ns = ap.parse_args(argv if argv is not None else sys.argv[1:])
 
     rows = load()
     if rows is None:
         return 2
+
+    if ns.audit:
+        return audit(rows)
 
     if ns.list_domains:
         counts = {}

@@ -60,7 +60,19 @@ def _line_twips(multiple):
 
 
 def main(path, profile=None):
-    doc = Document(path)
+    if not os.path.exists(path):
+        raise SystemExit(f"错误：待核验文件不存在：{path}")
+    if not path.lower().endswith(".docx"):
+        raise SystemExit(f"错误：需要 .docx 文件（.doc/其他格式请先转换）：{path}")
+    try:
+        doc = Document(path)
+    except Exception as exc:
+        # python-docx 对损坏包抛 PackageNotFoundError / BadZipFile 等，
+        # 直接 traceback 对使用者无信息量，转成一句可行动的错误。
+        raise SystemExit(
+            f"错误：无法作为 docx 打开：{path}\n"
+            f"  原因：{type(exc).__name__}: {exc}\n"
+            "  该文件可能已损坏、被占用，或是 .doc/RTF 改扩展名而来。")
     spec = load_spec(profile=profile)
     prof = resolve_profile(profile)
 
@@ -513,6 +525,22 @@ def main(path, profile=None):
     check("附 无代码围栏标记残留", not fence_residue, str(fence_residue[:3]))
     check("附 无分隔线字面残留", not hr_residue, str(hr_residue[:3]))
     check("附 无围栏注释误判为标题", not hash_heading, str(hash_heading[:3]))
+
+    # ---- 结构要件门禁（profile.required_sections） ----
+    # 版式对不代表文章成立：公文缺发文机关、论文缺摘要、审计报告缺意见段，
+    # 版式全对也没用。规范库里的 56 条结构骨架此前无法被门禁消费，这里让
+    # profile 声明必备章节关键词，校验时按标题/正文文本包含匹配。
+    # 只做「有没有」的存在性检查，不判断内容质量与顺序。
+    required = (spec.get("profile") or {}).get("required_sections") or []
+    if required:
+        all_text = "\n".join(
+            [p.text for p in doc.paragraphs]
+            + [c.text for t in doc.tables for r in t.rows for c in r.cells])
+        missing = [sec for sec in required if str(sec) not in all_text]
+        check(f"结构 必备章节齐全（{len(required)} 项）", not missing,
+              "缺少：" + "、".join(missing))
+    else:
+        check("结构 必备章节齐全（该 profile 未声明，跳过）", True)
 
     print()
     print(f"合计：PASS {len(PASSES)} / FAIL {len(FAILS)}")
