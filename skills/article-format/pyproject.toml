@@ -8,7 +8,8 @@ version = "2.2.0"
 description = "中文文章排版：Markdown → 符合文体规范的 Word docx（13 种 profile + 规范库）"
 readme = "SKILL.md"
 requires-python = ">=3.9"
-license = { text = "MIT" }
+# 未选用 OSI 许可；使用条款见仓库 README「规范库与标准」节。
+license = { text = "Proprietary" }
 
 # 版本区间写死的理由：python-docx 1.x 与 0.8.x 的段落/编号 API 有差异，
 # PyYAML 6 之前 safe_load 对某些标量的处理也不同。此前完全没有约束，

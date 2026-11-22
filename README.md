@@ -2,38 +2,35 @@
 
 中文文章类文档的排版规范与生成工具。把 Markdown 草稿转成符合规范的 Word docx，按文体切换整套排版规格，并附带 490 条可检索的行业规范库。
 
-**没有默认排版**——每份文档都必须先按性质选定文体，脚本不指定就报错。这样不会出现「判不出文体就随便套一套」的情况。
+**没有默认排版**——每份文档都必须先按性质选定文体，脚本不指定就报错退出。判不出文体时不会随便套一套规格交差。
 
-写作里最费时的不是想内容，是应付格式：公文要求三号仿宋加上 37mm 天头、学位论文要求章标题「第1章」配三线表、期刊论文要求五号正文配双倍行距。这些规矩散在各部国标、投稿须知和单位模板里，每次动手都要重查一遍。这个仓库把规范变成配置——选一个文体，剩下的交给脚本。
-
-## 最近更新（v2.2.0）
-
-- **底模注入**：`--base-template 模板.docx --keep-until 锚点` 把正文灌进单位模板，封面、红头、原创性声明页原样保留。
-- **结构要件门禁**：profile 可声明 `required_sections`，交付前校验必备章节（论文缺摘要会报 FAIL，不再只查版式）。
-- **配置可信**：profile 写错键在加载时直接报错并列出可疑键。此前把 `list.formats` 改成任何值都不会生效，且一声不响。
-- **工程基线**：`pyproject.toml` 锁依赖版本；`pytest` 58 项测试（含篡改字体验门禁真会拦的负向用例）；三平台 × 三 Python 版本 CI。
+写作里最费时的往往不是内容，是应付格式：公文要求三号仿宋配 37mm 天头，学位论文要求章标题「第1章」配三线表，期刊论文要求五号正文配双倍行距。这些规矩散在各部国标、投稿须知和单位模板里，每次动手都要重查一遍。这个仓库把规范变成配置——选一个文体，剩下的交给脚本。
 
 ## 能力
 
-**13 种文体 profile**（12 个行业文体 + 1 个通用档），每套独立规定字体、字号、行距、页边距、章节编号体系与表格样式：
+### 13 种文体 profile
 
-| profile | 适用文体 | 关键差异 |
-| --- | --- | --- |
-| `formal-doc` | 方案、总结、汇报、调研报告、说明书等通用正式文章 | 黑体标题 / 宋体小四 / 1.3 倍行距 / 数字式七级编号 |
-| `gov-official` | 党政机关公文 15 文种 | 上 3.7 下 3.5 左 2.8 右 2.6cm、3 号仿宋、固定行距 28.9 磅、「一、」「（一）」层次序数 |
-| `enterprise-doc` | 企业通知、请示、报告、纪要 | 小四宋体、1.5 倍行距、公文式层次序数（信息密度优先） |
-| `thesis` | 本科至博士学位论文 | 页边距 3/2.5cm、章标题「第1章」、三线表 |
-| `academic-paper` | 期刊论文、学报、会议论文 | 五号正文、章节编号不超过 4 级、三线表 |
-| `medical-paper` | 医学论文、病例报告、系统综述 | 双倍行距、IMRaD 无编号标题、Vancouver 引文 |
-| `tech-doc` | 用户手册、API 文档、PRD、运维手册 | 正文左对齐无缩进、标题不加编号、Arial 西文 |
-| `legal-doc` | 起诉状、合同、法律意见书 | 三号仿宋、公文式版心、层次标题不加粗 |
-| `press-release` | 新闻稿、通稿、公关声明 | 标题左对齐、小标题不加编号 |
-| `business-report` | 可行性研究、商业计划、ESG、尽调 | 章标题居中、章节不超过 5 级 |
-| `regulation` | 管理办法、操作规程、SOP、质量手册 | 章标题居中、条款式列举 |
-| `teaching-doc` | 教案、教学设计、开题报告、教研论文 | 四号标题、五号表格（教学过程表） |
-| `social-media` | 公众号、小红书、知乎、短视频脚本 | 正文不缩进左对齐、1.75 倍行距、无页码 |
+每套独立规定字体、字号、行距、页边距、章节编号体系与表格样式，全部落在 yaml 里，改规格不用改代码。
 
-**490 条规范库**，覆盖 14 个领域 46 个子类。每条含名称、可执行规格、适用文体与置信度（high 304 / medium 176 / low 10）。`query_standards.py --audit` 可查可溯源性：其中 172 条无标准号且非 high 置信度，只能当写作提示，不作排版依据。
+| profile | 适用文体 | 依据 | 关键差异 |
+| --- | --- | --- | --- |
+| `formal-doc` | 方案、总结、汇报、调研报告、说明书 | 内置通用规范 | 黑体标题 / 宋体小四 / 1.3 倍行距 / 数字式七级编号 |
+| `gov-official` | 党政机关公文 15 文种 | GB/T 9704-2012 | 上 3.7 下 3.5 左 2.8 右 2.6cm、3 号仿宋、固定行距 28.9 磅、「一、」「（一）」层次序数 |
+| `enterprise-doc` | 企业通知、请示、报告、纪要 | 公文处理工作条例（参照） | 小四宋体、1.5 倍行距、公文式层次序数（信息密度优先） |
+| `thesis` | 本科至博士学位论文 | GB/T 7713.1-2025 | 页边距 3/2.5cm、章标题「第1章」、三线表 |
+| `academic-paper` | 期刊论文、学报、会议论文 | GB/T 7713.2-2022 | 五号正文、章节编号不超过 4 级、三线表 |
+| `medical-paper` | 医学论文、病例报告、系统综述 | ICMJE Recommendations | 双倍行距、IMRaD 无编号标题、Vancouver 引文 |
+| `tech-doc` | 用户手册、API 文档、PRD、运维手册 | ISO/IEC/IEEE 82079-1 + GB/T 8567 | 正文左对齐无缩进、标题不加编号、Arial 西文 |
+| `legal-doc` | 起诉状、合同、法律意见书 | 民事诉讼文书样式 | 三号仿宋、公文式版心、层次标题不加粗 |
+| `press-release` | 新闻稿、通稿、公关声明 | 新华社禁用词慎用词 | 标题左对齐、小标题不加编号 |
+| `business-report` | 可行性研究、商业计划、ESG、尽调 | 可行性研究指南 + 内控规范 | 章标题居中、章节不超过 5 级 |
+| `regulation` | 管理办法、操作规程、SOP、质量手册 | GB/T 1.1-2020 | 章标题居中、条款式列举 |
+| `teaching-doc` | 教案、教学设计、开题报告、教研论文 | 义务教育课程方案（2022 年版） | 四号标题、五号表格（教学过程表） |
+| `social-media` | 公众号、小红书、知乎、短视频脚本 | 广告法 + 互联网广告管理办法 | 正文不缩进左对齐、1.75 倍行距、无页码 |
+
+### 490 条规范库
+
+覆盖 14 个领域，每条含名称、可执行规格、适用文体与置信度。
 
 | 领域 | 条数 | 领域 | 条数 |
 | --- | --- | --- | --- |
@@ -45,6 +42,31 @@
 | 营销与品牌 | 20 | 医疗卫生 | 20 |
 | 法律与合规 | 19 | 语言文字基础 | 8 |
 
+置信度分布 high 304 / medium 176 / low 10。`query_standards.py --audit` 可查可溯源性：其中 172 条无标准号且非 high 置信度，只能当写作提示，不作排版依据。
+
+### 底模注入
+
+公文红头、学位论文封面与原创性声明页、单位发文机关标志这类部件脚本无法凭空生成。`--base-template` 把正文灌进你提供的模板，前置部件原样保留：
+
+```bash
+python scripts/md2docx.py 正文.md out.docx --profile thesis \
+  --base-template 学校模板.docx \
+  --keep-until 目录
+```
+
+`--keep-until` 指定模板里的一行锚点文字，脚本删掉该处之后的内容、正文从那里续写。按段落文本包含匹配，找不到就报错退出，不会静默追加到末尾。
+
+### 结构要件门禁
+
+版式全对不代表文章成立——论文缺摘要、公文缺发文机关，版式再准也没用。profile 可声明 `required_sections`，交付前做存在性检查：
+
+```yaml
+profile:
+  required_sections: [摘要, 关键词, 参考文献]
+```
+
+已在 `academic-paper`、`thesis`（摘要/关键词/参考文献）与 `medical-paper`（另加方法/结果/讨论）声明。缺项报 `[FAIL] 结构 必备章节齐全` 并列出缺什么。只判有无，不判质量与顺序。
+
 ## 快速开始
 
 ```bash
@@ -55,13 +77,13 @@ cp -r Article-Format-Skill/skills/article-format ~/.agents/skills/
 # Claude Code 用户：cp -r skills/article-format ~/.claude/skills/
 ```
 
-依赖只有 `python-docx` 与 `PyYAML`：
+依赖只有 `python-docx` 与 `PyYAML`，版本区间写在 `pyproject.toml`：
 
 ```bash
-python -m pip install python-docx pyyaml
+python -m pip install "python-docx>=1.1,<2" "PyYAML>=6.0,<7"
 ```
 
-生成文档（`--profile` 必填，不指定会报错并列出可选文体）：
+生成文档（`--profile` 必填）：
 
 ```bash
 # 公文
@@ -81,6 +103,8 @@ python skills/article-format/scripts/md2docx.py --list-profiles
 ```bash
 python skills/article-format/scripts/article_style.py 旧.docx 新.docx --profile thesis
 ```
+
+输出路径相对 `ARTICLE_OUT_DIR` 或当前工作目录解析，保留子目录（`sub/out.docx` 会落到 `sub/` 下并自动建目录）。逃出基准目录的路径报错退出。
 
 ## 源稿写法
 
@@ -103,34 +127,40 @@ python skills/article-format/scripts/article_style.py 旧.docx 新.docx --profil
 | 单元格 | 单元格 |
 ```
 
-中文式编号（`一、`、`（一）`、`第一章`）在 `heading_kind` 为中文体系的 profile 下会被识别为标题，`default` 下仍按正文列举处理。
+中文式编号（`一、`、`（一）`、`第一章`）只在 `heading_kind` 为中文体系的 profile（`gov-official`、`enterprise-doc`、`legal-doc`、`thesis`）下识别为标题；`formal-doc` 等数字体系下这些行按正文列举处理，避免误判。
 
-标号会自动剥离，成品编号由 Word 多级列表驱动——增删章节编号自动重排，不需要手改。
+标号会自动剥离，成品编号由 Word 多级列表驱动——增删章节编号自动重排，不需要手改。层级跳级默认报错退出（`numbering_scheme.heading_gap_check` 可改 `warn` / `off`）。
+
+另外支持：`---` 输出分隔横线、成对 ``` 围栏内文本原样输出（`#` 注释不当标题）、单独一行 `[[PAGEBREAK]]` 生成硬分页。
 
 ## 校验
 
 ```bash
-# 单个文档
+# 单个文档（约 100 项断言，退出码 0 才可交付）
 python skills/article-format/scripts/verify_article_style.py 成品.docx --profile thesis
 
 # 全部 profile 端到端回归
 python skills/article-format/scripts/run_profile_regression.py
 
-# 技能文档与实物一致性
+# 单元 + 真实样张端到端 + 负向门禁（58 项）
+python -m pytest tests/ -q
+
+# 技能文档与实物一致性（9 项）
 python skills/article-format/scripts/check_skill_consistency.py
 ```
 
-`verify_article_style.py` 约 100 项断言（随 profile 与表格数浮动），退出码 0 才可交付。查的是字体、字号、段距、行距、纸型、页边距、编号体系、页码格式、三线表、表格跨页规则与 OOXML schema 顺序。
+`verify_article_style.py` 查字体、字号、段距、行距、纸型、页边距、编号体系、页码格式、三线表、表格跨页规则与 OOXML schema 顺序，外加 `required_sections` 结构要件。
+
+`tests/` 用 `tests/samples/medium-article.md`（31 行表格、七级嵌套列表、日期行首、代码块、分页符）跑真实文章形态，并含**负向门禁测试**——篡改字体字号后确认 verify 真的报 FAIL，防止门禁空转。
 
 ## 查规范
-
-想知道某行业通常怎么写、参数是多少：
 
 ```bash
 python skills/article-format/scripts/query_standards.py --list-domains
 python skills/article-format/scripts/query_standards.py --domain gov --min-conf high
 python skills/article-format/scripts/query_standards.py --keyword 三线表 --full
 python skills/article-format/scripts/query_standards.py --profile thesis
+python skills/article-format/scripts/query_standards.py --audit      # 可溯源性审计
 ```
 
 规范库三层结构：`references/standards/index.md`（全量索引）、`domain-<slug>.md`（14 个分域详表）、`standards.jsonl`（机器可查）。
@@ -144,6 +174,7 @@ python skills/article-format/scripts/query_standards.py --profile thesis
 profile:
   name: my-genre
   title: 我的文体
+  required_sections: [摘要, 正文]     # 可选：交付前校验必备章节
 
 fonts:
   heading: 黑体
@@ -165,15 +196,24 @@ table:
 
 numbering_scheme:
   heading_kind: chinese  # numeric / chinese / chapter / chinese-numeric / none
+
+list:
+  level_defs:            # 正文列举七级编号定义
+    - {fmt: chineseCounting, text: "%1、"}
+    - {fmt: chineseCounting, text: "（%1）"}
 ```
+
+**写错键会报错**：profile 里出现 `DEFAULT_SPEC` 中不存在的键（例如把 `list.level_defs` 写成 `list.formats`），加载时直接抛错并列出可疑键。这些键不会被任何代码读取，留着只会让人以为改了有用。
 
 临时换规格文件：`ARTICLE_FORMAT_SPEC=/path/to/spec.yaml`。按文体选：`--profile <名>` 或 `ARTICLE_FORMAT_PROFILE=<名>`。
 
 ## 已知限制
 
-- 公文、法律文书、学位论文的**封面、发文机关标志、红色分隔线、印章、成文日期位置、原创性声明页、页眉章名、罗马数字前置页码**不由脚本生成，需按单位模板人工处理。脚本只保证正文版式与层次序数合规。
-- 规范库中标 `low` 的 10 条来自二手转述、口径存疑，不作为排版依据。
+- 公文、法律文书、学位论文的**封面、发文机关标志、红色分隔线、印章、成文日期位置、原创性声明页、页眉章名、罗马数字前置页码**不由脚本生成。`--base-template` 可承接这些部件，但模板本身仍需人工准备。脚本只保证正文版式与层次序数合规。
+- 规范库中标 `low` 的 10 条来自二手转述、口径存疑，不作为排版依据。另有 172 条无标准号且非 high 置信度，只能当写作提示。
 - 平台限流词、公文禁用词、广告法违禁表述**不做词表扫描**，需人工对照规范库核校。
+- `required_sections` 只做关键词存在性匹配，不判章节顺序、层级正确性与内容质量；同名词出现在正文任意位置也会算命中。
+- `--keep-until` 按段落文本包含匹配，模板里有多个段落含同一文字时取第一个。
 - 本技能只管文档内表格；独立成件的表格文件请用 `table-format`（深蓝表头 + 隔行底纹那套规格），两者样式不同且不宜混用。
 
 ## 目录
@@ -188,10 +228,11 @@ skills/article-format/
 ├── tests/                      pytest：规格契约 / 路径语义 / 真实样张端到端 / 负向门禁
 │   └── samples/                medium-article.md（长表格、七级嵌套、日期行首、代码块）
 └── scripts/
-    ├── md2docx.py              Markdown → docx 骨架（含 --base-template 底模注入）
+    ├── md2docx.py              Markdown → docx（含 --base-template 底模注入）
     ├── article_style.py        样式内核（标题/正文/编号/表格/页码）
     ├── spec_loader.py          profile 加载、规格合并与未知键校验
     ├── verify_article_style.py 规格核验（约 100 项断言 + 结构要件门禁）
+    ├── verify_docx.py          转换完整性（源 md 与产物结构要素对比）
     ├── query_standards.py      规范库检索（--audit 可溯源性审计）
     ├── build_standards_catalog.py  调研数据 → 规范库
     ├── apply_verification.py   标准号核查结果回填
@@ -201,6 +242,14 @@ skills/article-format/
 
 CI 位于仓库根 `.github/workflows/ci.yml`（GitHub Actions 只识别仓库根），矩阵跑 Windows / Ubuntu / macOS × Python 3.9 / 3.11 / 3.12。
 
-## 许可
+## 设计取舍
 
-技能脚本与规范库结构可自由使用。规范库中的标准条文引用其著作权归原标准发布机构，本仓库仅作要点归纳与检索用途，不作为标准原文替代。
+三处刻意的简化，都标注了升级路径：
+
+- **样式走内置样式对象**：标题套 Word 内置 Heading 1-7，靠大纲级别驱动导航窗格，不生成目录域。好处是 Word/WPS 都能用、改样式即时生效；代价是目录页码需要 Word 自己刷新。
+- **编号交给 Word 多级列表**：源稿手写编号在渲染时剥离，成品编号由 abstractNum 驱动。这样增删章节自动重排，但也意味着直接改 docx 里的编号文字会被覆盖。
+- **单进程全局规格**：`article_style.py` 用模块级常量持有当前规格，`set_profile()` 重刷。够用且简单，但不支持同进程并行处理多份不同 profile 的文档。真需要时改成传 spec 对象。
+
+## 规范库与标准
+
+规范库中的标准条文引用其著作权归原标准发布机构，本仓库仅作要点归纳与检索用途，不作为标准原文替代。实际排版交付前，请以现行标准原文或本单位模板为准。
