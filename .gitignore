@@ -10,7 +10,6 @@ dist/
 
 # 测试产物
 *.docx
-!reference.docx
 .profile-regression/
 .tmp/
 test.md
