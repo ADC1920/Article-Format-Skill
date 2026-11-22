@@ -18,6 +18,15 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
         python: ["3.9", "3.11", "3.12"]
+        exclude:
+          # ubuntu-latest 已升到 Ubuntu 26.04，该镜像不提供 Python 3.9
+          # （实测 setup-python 报 "version '3.9' was not found"）。
+          # 3.9 是 pyproject 声明的最低支持版本，改用 22.04 保留覆盖。
+          - os: ubuntu-latest
+            python: "3.9"
+        include:
+          - os: ubuntu-22.04
+            python: "3.9"
     runs-on: ${{ matrix.os }}
     defaults:
       run:
